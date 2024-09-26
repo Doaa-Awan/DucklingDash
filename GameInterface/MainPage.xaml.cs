@@ -34,6 +34,10 @@ namespace GameInterface
     {
         private static GamePiece player;
         private static GamePiece dot;
+
+        private static List<GamePiece> collectedDots = new List<GamePiece>();  // List to store collected dots
+        private Random random = new Random();
+
         public MainPage()
         {
             this.InitializeComponent();
@@ -76,8 +80,44 @@ namespace GameInterface
 
             //Check for collisions between player and collectible
             //Note: this looks for identical top/left locations of the two objects. To be more precise, you can write a better collision detection method!
-            if (player.Location == dot.Location)
-                await new MessageDialog("Collision Detected").ShowAsync();
+
+            //if (player.Location == dot.Location)
+            //    await new MessageDialog("Collision Detected").ShowAsync();
+
+            // Check for collisions between player and dot
+            if (IsCollected(player, dot))
+            {
+                // Add the collected dot to the list
+                collectedDots.Add(dot);
+
+                // Remove the dot from the screen
+                gridMain.Children.Remove(dot.OnScreen);
+
+                // Notify the player
+                //await new MessageDialog("Dot Collected!").ShowAsync();
+
+                // Spawn a new dot at a random location
+                int newLeft = random.Next(0, (int)(gridMain.ActualWidth - 30)); // Prevents spawning off-screen
+                int newTop = random.Next(0, (int)(gridMain.ActualHeight - 30));
+                dot = CreatePiece("dot", 30, newLeft, newTop);
+            }
+        }
+
+        // Improved collision detection method
+        private bool IsCollected(GamePiece playerPiece, GamePiece dotPiece)
+        {
+            // Get the player's and dot's bounds
+            var playerBounds = playerPiece.OnScreen.TransformToVisual(gridMain)
+                .TransformBounds(new Windows.Foundation.Rect(0, 0, playerPiece.OnScreen.ActualWidth, playerPiece.OnScreen.ActualHeight));
+
+            var dotBounds = dotPiece.OnScreen.TransformToVisual(gridMain)
+                .TransformBounds(new Windows.Foundation.Rect(0, 0, dotPiece.OnScreen.ActualWidth, dotPiece.OnScreen.ActualHeight));
+
+            // Manually check for intersection between the two rectangles
+            return (playerBounds.Left < dotBounds.Right &&
+                    playerBounds.Right > dotBounds.Left &&
+                    playerBounds.Top < dotBounds.Bottom &&
+                    playerBounds.Bottom > dotBounds.Top);
         }
 
     }

@@ -6,9 +6,17 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d"
-    Background="{ThemeResource ApplicationPageBackgroundThemeBrush}" RequestedTheme="Light">
+    Background="{ThemeResource ApplicationPageBackgroundThemeBrush}" RequestedTheme="Dark">
 
-    <Grid Background="Black" x:Name="gridMain" Margin="20,20,20,20" VerticalAlignment="Top" HorizontalAlignment="Left" Width="1880" Height="1040">
+    <Grid Background="Black" 
+          x:Name="gridMain" 
+          Margin="20,20,20,20" 
+          VerticalAlignment="Center" 
+          HorizontalAlignment="Center" 
+          Width="900" 
+          Height="900" 
+          BorderBrush="Red"
+          BorderThickness="2">
 
     </Grid>
 </Page>
