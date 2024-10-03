@@ -15,8 +15,11 @@
           HorizontalAlignment="Center" 
           Width="700" 
           Height="700" 
-          BorderBrush="Red"
+          BorderBrush="Gray"
           BorderThickness="2">
+        <TextBlock x:Name="txtScore" HorizontalAlignment="Left" Margin="116,-49,0,0" TextWrapping="Wrap" Text="0" VerticalAlignment="Top" FontSize="30" FontFamily="Cascadia Code"/>
+        <TextBlock x:Name="lblScore" HorizontalAlignment="Left" Margin="-2,-51,0,0" TextWrapping="Wrap" Text="SCORE: " VerticalAlignment="Top" FontSize="30" FontFamily="Cascadia Code"/>
+        <TextBlock x:Name="lblOverlay" HorizontalAlignment="Center" TextWrapping="Wrap" Text="PRESS ANY KEY TO START GAME" VerticalAlignment="Center" FontSize="60" FontFamily="Cascadia Code" TextAlignment="Center"/>
 
     </Grid>
 </Page>
