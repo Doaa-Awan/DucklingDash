@@ -20,7 +20,7 @@ using Windows.UI.Xaml.Media.Imaging;
 // The Blank Page item template is documented at https://go.microsoft.com/fwlink/?LinkId=402352&clcid=0x409
 
 /* UWP Game Template
- * Created By: Melissa VanderLely
+ * Created By: 
  * Modified By:  
  */
 
@@ -38,14 +38,43 @@ namespace GameInterface
         private static List<GamePiece> collectedDots = new List<GamePiece>();  // List to store collected dots
         private Random random = new Random();
 
+        // Declare the DispatcherTimer and direction
+        private DispatcherTimer timer = new DispatcherTimer();
+        private Windows.System.VirtualKey currentDirection;
+
         public MainPage()
         {
             this.InitializeComponent();
             Window.Current.CoreWindow.KeyDown += CoreWindow_KeyDown;
 
-            player = CreatePiece("player", 100, 50, 50);                      //create a GamePiece object associated with the pac-man image
-            dot = CreatePiece("dot", 30, 150, 150);
-       }
+            player = CreatePiece("player", 60, 50, 50);                      //create a GamePiece object associated with the pac-man image
+            dot = CreatePiece("dot", 15, 150, 150);
+
+            // Initialize direction and set up the timer
+            currentDirection = Windows.System.VirtualKey.Right; // Default direction
+            timer.Interval = TimeSpan.FromMilliseconds(50); // 100 ms for smooth movement
+            timer.Tick += Timer_Tick; // Attach Timer_Tick event to the timer
+            timer.Start(); // Start the timer
+        }
+
+        private void Timer_Tick(object sender, object e)
+        {
+            // Move the player continuously in the current direction
+            player.Move(currentDirection);
+
+            // After moving, check for collisions
+            if (IsCollected(player, dot))
+            {
+                // Handle the dot collection
+                HandleDotCollection();
+            }
+        }
+
+        //private void CoreWindow_KeyDown(object sender, Windows.UI.Core.KeyEventArgs e)
+        //{
+        //    // Update the current direction based on the key press
+        //    currentDirection = e.VirtualKey;
+        //}
 
         /// <summary>
         /// This method creates the Image object (to display the picture) and sets its properties.
@@ -73,8 +102,10 @@ namespace GameInterface
             return new GamePiece(img);
         }
 
-        private async void CoreWindow_KeyDown(object sender, Windows.UI.Core.KeyEventArgs e)
+        private void CoreWindow_KeyDown(object sender, Windows.UI.Core.KeyEventArgs e)
         {
+            currentDirection = e.VirtualKey;
+
             //Calculate new location for the player character
             player.Move(e.VirtualKey);
 
@@ -99,8 +130,22 @@ namespace GameInterface
                 // Spawn a new dot at a random location
                 int newLeft = random.Next(0, (int)(gridMain.ActualWidth - 30)); // Prevents spawning off-screen
                 int newTop = random.Next(0, (int)(gridMain.ActualHeight - 30));
-                dot = CreatePiece("dot", 30, newLeft, newTop);
+                dot = CreatePiece("dot", 15, newLeft, newTop);
             }
+        }
+
+        private void HandleDotCollection()
+        {
+            // Add the collected dot to the list
+            collectedDots.Add(dot);
+
+            // Remove the dot from the screen
+            gridMain.Children.Remove(dot.OnScreen);
+
+            // Spawn a new dot at a random location
+            int newLeft = random.Next(0, (int)(gridMain.ActualWidth - 30)); // Prevents spawning off-screen
+            int newTop = random.Next(0, (int)(gridMain.ActualHeight - 30));
+            dot = CreatePiece("dot", 15, newLeft, newTop);
         }
 
         // Improved collision detection method
@@ -113,7 +158,7 @@ namespace GameInterface
             var dotBounds = dotPiece.OnScreen.TransformToVisual(gridMain)
                 .TransformBounds(new Windows.Foundation.Rect(0, 0, dotPiece.OnScreen.ActualWidth, dotPiece.OnScreen.ActualHeight));
 
-            // Manually check for intersection between the two rectangles
+            // Check if the player and the dot are intersecting
             return (playerBounds.Left < dotBounds.Right &&
                     playerBounds.Right > dotBounds.Left &&
                     playerBounds.Top < dotBounds.Bottom &&

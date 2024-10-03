@@ -13,8 +13,8 @@
           Margin="20,20,20,20" 
           VerticalAlignment="Center" 
           HorizontalAlignment="Center" 
-          Width="900" 
-          Height="900" 
+          Width="700" 
+          Height="700" 
           BorderBrush="Red"
           BorderThickness="2">
 

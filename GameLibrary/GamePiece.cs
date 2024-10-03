@@ -5,7 +5,7 @@ using Windows.UI.Xaml.Media;
 using Windows.Foundation;
 
 /* UWP Game Library
- * Written By: Melissa VanderLely
+ * Written By: 
  * Modified By:
  */
 
@@ -43,22 +43,22 @@ namespace GameLibrary
             switch (direction)
             {
                 case Windows.System.VirtualKey.Up:
-                    newMargins.Top = Math.Max(0, objectMargins.Top - 10);  // Ensure the top margin doesn't go below 0
+                    newMargins.Top = Math.Max(0, objectMargins.Top - 20);  // Ensure the top margin doesn't go below 0
                     rotateTransform.Angle = 270;  // Rotate upwards (270 degrees)
                     //objectMargins.Top -= 10;
                     break;
                 case Windows.System.VirtualKey.Down:
-                    newMargins.Top = Math.Min(900 - onScreen.Height, objectMargins.Top + 10);  // Prevent the player from moving below the grid
+                    newMargins.Top = Math.Min(700 - onScreen.Height, objectMargins.Top + 20);  // Prevent the player from moving below the grid
                     rotateTransform.Angle = 90;  // Rotate downwards (90 degrees)
                     //objectMargins.Top += 10;
                     break;
                 case Windows.System.VirtualKey.Left:
-                    newMargins.Left = Math.Max(0, objectMargins.Left - 10);  // Ensure the left margin doesn't go below 0
+                    newMargins.Left = Math.Max(0, objectMargins.Left - 20);  // Ensure the left margin doesn't go below 0
                     rotateTransform.Angle = 180;  // Rotate left (180 degrees)
                     //objectMargins.Left -= 10;
                     break;
                 case Windows.System.VirtualKey.Right:
-                    newMargins.Left = Math.Min(900 - onScreen.Width, objectMargins.Left + 10);  // Prevent the player from moving beyond the grid
+                    newMargins.Left = Math.Min(700 - onScreen.Width, objectMargins.Left + 20);  // Prevent the player from moving beyond the grid
                     rotateTransform.Angle = 0;  // Rotate right (0 degrees)
                     //objectMargins.Left += 10;
                     break;
@@ -71,5 +71,7 @@ namespace GameLibrary
             onScreen.Margin = objectMargins;            //assign the new position to the on-screen image
             return true;
         }
+
+
     }
 }
