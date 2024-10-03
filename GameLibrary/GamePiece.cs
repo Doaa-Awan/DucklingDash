@@ -45,19 +45,19 @@ namespace GameLibrary
             switch (direction)
             {
                 case Windows.System.VirtualKey.Up:
-                    newMargins.Top = Math.Max(0, position.Top - 20);
+                    newMargins.Top = Math.Max(0, position.Top - 10);
                     rotateTransform.Angle = 270;
                     break;
                 case Windows.System.VirtualKey.Down:
-                    newMargins.Top = Math.Min(gridHeight - pieceImg.Height, position.Top + 20);
+                    newMargins.Top = Math.Min(gridHeight - pieceImg.Height, position.Top + 10);
                     rotateTransform.Angle = 90;
                     break;
                 case Windows.System.VirtualKey.Left:
-                    newMargins.Left = Math.Max(0, position.Left - 20);
+                    newMargins.Left = Math.Max(0, position.Left - 10);
                     rotateTransform.Angle = 180;
                     break;
                 case Windows.System.VirtualKey.Right:
-                    newMargins.Left = Math.Min(gridWidth - pieceImg.Width, position.Left + 20);
+                    newMargins.Left = Math.Min(gridWidth - pieceImg.Width, position.Left + 10);
                     rotateTransform.Angle = 0;
                     break;
                 default:

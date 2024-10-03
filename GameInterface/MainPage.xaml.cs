@@ -36,15 +36,17 @@ namespace GameInterface
         private DispatcherTimer timer = new DispatcherTimer();
         private Windows.System.VirtualKey currentDirection;
 
+        private int playerSpeed = 50;
+
         public MainPage()
         {
             this.InitializeComponent();
             Window.Current.CoreWindow.KeyDown += CoreWindow_KeyDown;
 
-            player = CreatePiece("player", 60, 50, 50);  //img, size, left, top
+            player = CreatePiece("player", 80, 50, 50);  //img, size, left, top
             dot = CreatePiece("dot", 15, 150, 150);
 
-            timer.Interval = TimeSpan.FromMilliseconds(50); 
+            timer.Interval = TimeSpan.FromMilliseconds(playerSpeed); 
             timer.Tick += HandleMovement; 
             timer.Start();
         }

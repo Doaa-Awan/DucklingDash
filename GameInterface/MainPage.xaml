@@ -8,7 +8,7 @@
     mc:Ignorable="d"
     Background="{ThemeResource ApplicationPageBackgroundThemeBrush}" RequestedTheme="Dark">
 
-    <Grid Background="Black" 
+    <Grid Background="SkyBlue" 
           x:Name="gridMain" 
           Margin="20,20,20,20" 
           VerticalAlignment="Center" 
