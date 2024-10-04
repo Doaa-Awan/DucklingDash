@@ -3,28 +3,33 @@ using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Media;
 using Windows.Foundation;
+using System.Text.RegularExpressions;
 
 /* UWP Game Library
  * Written By: Melissa VanderLely
- * Modified By:
+ * Modified By: Doaa Awan
  */
 
 namespace GameLibrary
 {
     public class GamePiece
     {
-        private Thickness position;            
-        private Image pieceImg;                   
+        private Thickness position;
+        private Image pieceImg;
         private RotateTransform rotateTransform;
 
-        public Thickness Location             
+        public Thickness Location
         {
             get { return pieceImg.Margin; }
+            set { pieceImg.Margin = value; }
         }
 
-        public Image PieceImg => pieceImg; //public property to access image
+        public Image PieceImg => pieceImg; // Public property to access image
 
-        public GamePiece(Image img)  //creates a piece and a reference to its associated image
+        // Public property to access rotation
+        public RotateTransform RotateTransform => rotateTransform;
+
+        public GamePiece(Image img)  // Creates a piece and a reference to its associated image
         {
             pieceImg = img;
             position = img.Margin;
@@ -35,45 +40,44 @@ namespace GameLibrary
             pieceImg.RenderTransformOrigin = new Point(0.5, 0.5);  // Rotate around the center of the image
         }
 
-        //calculate a new location for the piece, based on a key press
-        public bool Move(Windows.System.VirtualKey direction, double gridHeight, double gridWidth)   
+        // Calculate a new location for the piece, based on a key press
+        public bool Move(Windows.System.VirtualKey direction, int offset)
         {
-
             // Get the current margin (location) of the player
             Thickness newMargins = position;
 
             switch (direction)
             {
                 case Windows.System.VirtualKey.Up:
-                    newMargins.Top = Math.Max(0, position.Top - 10);
+                    // Decrease Top to move up, but not beyond -620
+                    newMargins.Top = Math.Max(-620, position.Top - offset);
                     rotateTransform.Angle = 270;
                     break;
                 case Windows.System.VirtualKey.Down:
-                    newMargins.Top = Math.Min(gridHeight - pieceImg.Height, position.Top + 10);
+                    // Increase Top to move down, but not beyond 620
+                    newMargins.Top = Math.Min(620, position.Top + offset);
                     rotateTransform.Angle = 90;
                     break;
                 case Windows.System.VirtualKey.Left:
-                    newMargins.Left = Math.Max(0, position.Left - 10);
+                    // Decrease Left to move left, but not beyond -620
+                    newMargins.Left = Math.Max(-620, position.Left - offset);
                     rotateTransform.Angle = 180;
                     break;
                 case Windows.System.VirtualKey.Right:
-                    newMargins.Left = Math.Min(gridWidth - pieceImg.Width, position.Left + 10);
+                    // Increase Left to move right, but not beyond 620
+                    newMargins.Left = Math.Min(620, position.Left + offset);
                     rotateTransform.Angle = 0;
                     break;
                 default:
                     return false;
             }
 
-            // Recheck bounds to ensure the image is fully visible
-            newMargins.Left = Math.Max(0, Math.Min(gridWidth - pieceImg.ActualWidth, newMargins.Left));
-            newMargins.Top = Math.Max(0, Math.Min(gridHeight - pieceImg.ActualHeight, newMargins.Top));
-
-            // Update only if the new location is within boundaries
+            // Update the position with the new margins
             position = newMargins;
 
-            pieceImg.Margin = position;   // Assign the new position to the on-screen image
+            // Apply the new position to the on-screen image
+            pieceImg.Margin = position;
             return true;
-
         }
     }
 }

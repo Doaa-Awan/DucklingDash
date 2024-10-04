@@ -19,7 +19,15 @@
           BorderThickness="2">
         <TextBlock x:Name="txtScore" HorizontalAlignment="Left" Margin="116,-49,0,0" TextWrapping="Wrap" Text="0" VerticalAlignment="Top" FontSize="30" FontFamily="Cascadia Code"/>
         <TextBlock x:Name="lblScore" HorizontalAlignment="Left" Margin="-2,-51,0,0" TextWrapping="Wrap" Text="SCORE: " VerticalAlignment="Top" FontSize="30" FontFamily="Cascadia Code"/>
-        <TextBlock x:Name="lblOverlay" HorizontalAlignment="Center" TextWrapping="Wrap" Text="PRESS ANY KEY TO START GAME" VerticalAlignment="Center" FontSize="60" FontFamily="Cascadia Code" TextAlignment="Center"/>
+        <TextBlock x:Name="lblOverlay" HorizontalAlignment="Center" TextWrapping="Wrap" Text="PRESS SPACE TO START GAME" VerticalAlignment="Center" FontSize="60" FontFamily="Cascadia Code" TextAlignment="Center" Width="467"/>
+        <TextBlock x:Name="txtLeft" HorizontalAlignment="Left" Margin="-81,476,0,0" TextWrapping="Wrap" Text="0" VerticalAlignment="Top" FontSize="20" FontFamily="Cascadia Code"/>
+        <TextBlock x:Name="lblLeft" HorizontalAlignment="Left" Margin="-172,474,0,0" TextWrapping="Wrap" Text="Left: " VerticalAlignment="Top" FontSize="20" FontFamily="Cascadia Code"/>
+        <TextBlock x:Name="txtRight" HorizontalAlignment="Left" Margin="-79,506,0,0" TextWrapping="Wrap" Text="0" VerticalAlignment="Top" FontSize="20" FontFamily="Cascadia Code"/>
+        <TextBlock x:Name="lblRight" HorizontalAlignment="Left" Margin="-170,504,0,0" TextWrapping="Wrap" Text="Right: " VerticalAlignment="Top" FontSize="20" FontFamily="Cascadia Code"/>
+        <TextBlock x:Name="txtTop" HorizontalAlignment="Left" Margin="-79,536,0,0" TextWrapping="Wrap" Text="0" VerticalAlignment="Top" FontSize="20" FontFamily="Cascadia Code"/>
+        <TextBlock x:Name="lblTop" HorizontalAlignment="Left" Margin="-170,534,0,0" TextWrapping="Wrap" Text="Top: " VerticalAlignment="Top" FontSize="20" FontFamily="Cascadia Code"/>
+        <TextBlock x:Name="txtBottom" HorizontalAlignment="Left" Margin="-79,566,0,0" TextWrapping="Wrap" Text="0" VerticalAlignment="Top" FontSize="20" FontFamily="Cascadia Code"/>
+        <TextBlock x:Name="lblBottom" HorizontalAlignment="Left" Margin="-170,564,0,0" TextWrapping="Wrap" Text="Bottom: " VerticalAlignment="Top" FontSize="20" FontFamily="Cascadia Code"/>
 
     </Grid>
 </Page>
