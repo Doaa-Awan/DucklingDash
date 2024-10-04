@@ -20,6 +20,7 @@ namespace GameInterface
     {
         private static GamePiece player;
         private static GamePiece dot;
+        private static GamePiece bonusDot;
         private static GamePiece babyDuck;
 
         private static List<GamePiece> collectedDucks = new List<GamePiece>();
@@ -31,6 +32,7 @@ namespace GameInterface
 
         private int score = 0;
         private int speed = 10;
+        private int defaultSpeed = 10;
 
         private struct PlayerState
         {
@@ -87,48 +89,31 @@ namespace GameInterface
             //move player continuously in current direction
             player.Move(currentDirection, 20);
 
-            //add new position and rotation angle of player
-            playerStates.Add(new PlayerState { Position = player.Location, RotationAngle = player.RotateTransform.Angle });
-
-            int offsetPerBaby = 5; //spacing between baby ducks
-            int distanceBehind = 3; //starting distance behind player
-
-            for (int i = 0; i < collectedDucks.Count; i++)
-            {
-                int index = playerStates.Count - ((i + 1) * offsetPerBaby) - distanceBehind;
-
-                if (index >= 0)
-                {
-                    // Set the position and rotation of the playerBaby based on the recorded states
-                    collectedDucks[i].Location = playerStates[index].Position;
-                    collectedDucks[i].RotateTransform.Angle = playerStates[index].RotationAngle;
-                }
-            }
-
             if (CollisionDetected(player, dot))
             {
                 HandleDotCollection();
             }
 
+            AlignBabyDucks();
+
             CheckCrash();
 
-            //ducks immediately behind player to ignore
-            int ignoreCount = 3;
-
-            // Start checking from the baby duck at index 'ignoreCount'
-            for (int i = ignoreCount; i < collectedDucks.Count; i++)
+            if (score == 5)
             {
-                GamePiece babyDuck = collectedDucks[i];
-                if (CollisionDetected(player, babyDuck))
+                bonusDot = CreatePiece("dot-clr", 15, 590, 590);
+                if (CollisionDetected(player, bonusDot))
                 {
-                    string msg = $"Game Over";
-                    ResetGame(msg, 0, 10); //set score to 0 and speed to 10
-                    break; 
+                    HandleDotCollection();
                 }
             }
-        }
 
-      
+            //bonusDot = CreatePiece("dot-colour", 15, 590, 590);
+
+            //if (bonusDot != null)
+            //{
+            //    lblTest.Text = bonusDot.Colour;
+            //}
+        }
 
         private void HandleDotCollection()
         {
@@ -147,14 +132,85 @@ namespace GameInterface
             CheckLevelUp();
         }
 
-  
+        private void AlignBabyDucks()
+        {
+            //add new position and rotation angle of player
+            playerStates.Add(new PlayerState { Position = player.Location, RotationAngle = player.RotateTransform.Angle });
+
+            int offsetPerBaby = 5; //spacing between baby ducks
+            int distanceBehind = 3; //starting distance behind player
+
+            for (int i = 0; i < collectedDucks.Count; i++)
+            {
+                int index = playerStates.Count - ((i + 1) * offsetPerBaby) - distanceBehind;
+
+                if (index >= 0)
+                {
+                    // Set the position and rotation of the playerBaby based on the recorded states
+                    collectedDucks[i].Location = playerStates[index].Position;
+                    collectedDucks[i].RotateTransform.Angle = playerStates[index].RotationAngle;
+                }
+            }
+        }
+
+        private void SpawnNewDot()
+        {
+            int gridSize = 620;
+            int randomNum = random.Next(0, gridSize - 30);
+            gridMain.Children.Remove(dot.PieceImg);
+            dot = CreatePiece("dot", 15, randomNum, randomNum);
+        }
+
+        private void CheckCrash()
+        {
+            //hit duck
+            int ignoreCount = 3; //ducks immediately behind player to ignore
+
+            //start checking from the baby duck at index 'ignoreCount'
+            for (int i = ignoreCount; i < collectedDucks.Count; i++)
+            {
+                GamePiece babyDuck = collectedDucks[i];
+                if (CollisionDetected(player, babyDuck))
+                {
+                    ResetGame("Game Over", 0, defaultSpeed); //set score to 0 and reset speed
+                    break;
+                }
+            }
+
+            //hit border
+            int playerLeft = (int)player.Location.Left;
+            int playerTop = (int)player.Location.Top;
+            RotateTransform rotateTransform = player.RotateTransform;
+
+            if ((rotateTransform.Angle == 270 && playerTop == -620) //top
+                || (rotateTransform.Angle == 90 && playerTop == 620) //down
+                || (rotateTransform.Angle == 180 && playerLeft == -620) //left
+                || (rotateTransform.Angle == 0 && playerLeft == 620)) //right
+                ResetGame("Game Over", 0, defaultSpeed);
+        }
+
+        //check collision with dot or ducks
+        private bool CollisionDetected(GamePiece playerPiece, GamePiece gamePiece)
+        {
+            var playerBounds = playerPiece.PieceImg.TransformToVisual(gridMain)
+                .TransformBounds(new Rect(0, 0, playerPiece.PieceImg.ActualWidth, playerPiece.PieceImg.ActualHeight));
+
+            var pieceBounds = gamePiece.PieceImg.TransformToVisual(gridMain)
+                .TransformBounds(new Rect(0, 0, (gamePiece.PieceImg.ActualWidth), (gamePiece.PieceImg.ActualHeight / 2)));
+
+            return (playerBounds.Left < pieceBounds.Right &&
+                    playerBounds.Right > pieceBounds.Left &&
+                    playerBounds.Top < pieceBounds.Bottom &&
+                    playerBounds.Bottom > pieceBounds.Top);
+        }
+
         //reset game and update level (speed) depending on score reached
         private void CheckLevelUp()
         {
             switch (score)
             {
-                case 25:
-                    ResetGame("Level 2", 25, 0); 
+                case 30:
+                    ResetGame("Level 2", 30, 0);
                     CheckSpeed();
                     break;
                 case 50:
@@ -183,47 +239,6 @@ namespace GameInterface
                 default:
                     break;
             }
-
-        }
-
-        private void SpawnNewDot()
-        {
-            int gridSize = 620;
-
-            gridMain.Children.Remove(dot.PieceImg);
-            int newLeft = random.Next(0, gridSize - 30);
-            int newTop = random.Next(0, gridSize - 30);
-            dot = CreatePiece("dot", 15, newLeft, newTop);
-        }
-
-
-        //check if dot was collected or crashed into baby ducks
-        private bool CollisionDetected(GamePiece playerPiece, GamePiece gamePiece)
-        {
-            var playerBounds = playerPiece.PieceImg.TransformToVisual(gridMain)
-                .TransformBounds(new Rect(0, 0, playerPiece.PieceImg.ActualWidth, playerPiece.PieceImg.ActualHeight));
-
-            var pieceBounds = gamePiece.PieceImg.TransformToVisual(gridMain)
-                .TransformBounds(new Rect(0, 0, (gamePiece.PieceImg.ActualWidth), (gamePiece.PieceImg.ActualHeight / 2)));
-
-            return (playerBounds.Left < pieceBounds.Right &&
-                    playerBounds.Right > pieceBounds.Left &&
-                    playerBounds.Top < pieceBounds.Bottom &&
-                    playerBounds.Bottom > pieceBounds.Top);
-        }
-
-        //check if player hit the boundaries
-        private void CheckCrash()
-        {
-            int playerLeft = (int)player.Location.Left;
-            int playerTop = (int)player.Location.Top;
-            RotateTransform rotateTransform = player.RotateTransform;
-
-            if ((rotateTransform.Angle == 270 && playerTop == -620) //top
-                || (rotateTransform.Angle == 90 && playerTop == 620) //down
-                || (rotateTransform.Angle == 180 && playerLeft == -620) //left
-                || (rotateTransform.Angle == 0 && playerLeft == 620)) //right
-                ResetGame("Game Over", 0, 10);
         }
 
         private void ResetGame(string message, int setScore, int setSpeed)
@@ -253,9 +268,6 @@ namespace GameInterface
             //clear lists
             collectedDucks.Clear();
             playerStates.Clear();
-
-            //Window.Current.CoreWindow.KeyDown -= CoreWindow_KeyDown;
-            //Window.Current.CoreWindow.KeyDown += CoreWindow_KeyDown;
         }
 
         private GamePiece CreatePiece(string imgSrc, int size, int left, int top)
