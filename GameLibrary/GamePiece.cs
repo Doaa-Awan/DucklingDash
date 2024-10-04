@@ -18,15 +18,13 @@ namespace GameLibrary
         private Image pieceImg;
         private RotateTransform rotateTransform;
 
+        //public properties
         public Thickness Location
         {
             get { return pieceImg.Margin; }
             set { pieceImg.Margin = value; }
         }
-
-        public Image PieceImg => pieceImg; // Public property to access image
-
-        // Public property to access rotation
+        public Image PieceImg => pieceImg; 
         public RotateTransform RotateTransform => rotateTransform;
 
         public GamePiece(Image img)  // Creates a piece and a reference to its associated image
