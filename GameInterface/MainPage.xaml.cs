@@ -98,14 +98,14 @@ namespace GameInterface
 
             CheckCrash();
 
-            if (score == 5)
-            {
-                bonusDot = CreatePiece("dot-clr", 15, 590, 590);
-                if (CollisionDetected(player, bonusDot))
-                {
-                    HandleDotCollection();
-                }
-            }
+            //if (score == 5)
+            //{
+            //    bonusDot = CreatePiece("dot-clr", 15, 590, 590);
+            //    if (CollisionDetected(player, bonusDot))
+            //    {
+            //        HandleDotCollection();
+            //    }
+            //}
 
             //bonusDot = CreatePiece("dot-colour", 15, 590, 590);
 

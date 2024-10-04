@@ -22,7 +22,5 @@
         <TextBlock x:Name="txtScore" HorizontalAlignment="Left" Margin="116,-49,0,0" TextWrapping="Wrap" Text="0" VerticalAlignment="Top" FontSize="30" FontFamily="Cascadia Code"/>
         <TextBlock x:Name="lblScore" HorizontalAlignment="Left" Margin="-2,-51,0,0" TextWrapping="Wrap" Text="SCORE: " VerticalAlignment="Top" FontSize="30" FontFamily="Cascadia Code"/>
         <TextBlock x:Name="txtSpeed" HorizontalAlignment="Left" Margin="535,-49,0,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top" FontSize="30" FontFamily="Cascadia Code" TextAlignment="Right" Width="161"/>
-        <TextBlock x:Name="lblTest" HorizontalAlignment="Left" Margin="-133,129,0,0" TextWrapping="Wrap" Text="test" VerticalAlignment="Top" FontSize="30" FontFamily="Cascadia Code"/>
-
     </Grid>
 </Page>
