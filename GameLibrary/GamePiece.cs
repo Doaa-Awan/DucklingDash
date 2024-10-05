@@ -16,7 +16,12 @@ namespace GameLibrary
     {
         private Thickness position;
         private Image pieceImg;
+
+        //additional properties
         private RotateTransform rotateTransform;
+        private Point currentPosition; 
+        private Point targetPosition;
+        private double playerSpeed; 
 
         //public properties
         public Thickness Location
@@ -24,56 +29,77 @@ namespace GameLibrary
             get { return pieceImg.Margin; }
             set { pieceImg.Margin = value; }
         }
+
+        public Point CurrentPosition
+        {
+            get { return currentPosition; }
+            set { currentPosition = value; }
+        }
+
+        public Point TargetPosition
+        {
+            get { return targetPosition; }
+            set { targetPosition = value; }
+        }
+
+        public double PlayerSpeed
+        {
+            get { return playerSpeed; }
+            set { playerSpeed = value; }
+        }
         public Image PieceImg => pieceImg; 
         public RotateTransform RotateTransform => rotateTransform;
 
+        //constructor
         public GamePiece(Image img)  // Creates a piece and a reference to its associated image
         {
             pieceImg = img;
             position = img.Margin;
 
-            // Initialize RotateTransform and set it as the image's render transform
             rotateTransform = new RotateTransform();
             pieceImg.RenderTransform = rotateTransform;
-            pieceImg.RenderTransformOrigin = new Point(0.5, 0.5);  // Rotate around the center of the image
+
+            //rotate around center of image
+            pieceImg.RenderTransformOrigin = new Point(0.5, 0.5);  
         }
 
         // Calculate a new location for the piece, based on a key press
         public bool Move(Windows.System.VirtualKey direction, int offset)
         {
-            // Get the current margin (location) of the player
+            //store current position of player in variable
             Thickness newMargins = position;
+            int gridSize = 620;
 
             switch (direction)
             {
                 case Windows.System.VirtualKey.Up:
-                    // Decrease Top to move up, but not beyond -620
-                    newMargins.Top = Math.Max(-620, position.Top - offset);
+                    //up cannot exceed past -620
+                    newMargins.Top = Math.Max(-gridSize, position.Top - offset);
                     rotateTransform.Angle = 270;
                     break;
                 case Windows.System.VirtualKey.Down:
-                    // Increase Top to move down, but not beyond 620
-                    newMargins.Top = Math.Min(620, position.Top + offset);
+                    //top cannot exceed past 620
+                    newMargins.Top = Math.Min(gridSize, position.Top + offset);
                     rotateTransform.Angle = 90;
                     break;
                 case Windows.System.VirtualKey.Left:
-                    // Decrease Left to move left, but not beyond -620
-                    newMargins.Left = Math.Max(-620, position.Left - offset);
+                    //left cannot exceed past -620
+                    newMargins.Left = Math.Max(-gridSize, position.Left - offset);
                     rotateTransform.Angle = 180;
                     break;
                 case Windows.System.VirtualKey.Right:
-                    // Increase Left to move right, but not beyond 620
-                    newMargins.Left = Math.Min(620, position.Left + offset);
+                    //right cannot exceed past 620
+                    newMargins.Left = Math.Min(gridSize, position.Left + offset);
                     rotateTransform.Angle = 0;
                     break;
                 default:
                     return false;
             }
 
-            // Update the position with the new margins
+            //update position based on new margins
             position = newMargins;
 
-            // Apply the new position to the on-screen image
+            //apply new position
             pieceImg.Margin = position;
             return true;
         }

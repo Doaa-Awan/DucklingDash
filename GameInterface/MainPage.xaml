@@ -8,7 +8,7 @@
     mc:Ignorable="d"
     Background="{ThemeResource ApplicationPageBackgroundThemeBrush}" RequestedTheme="Dark">
 
-    <Grid Background="#FF11AEE2" 
+    <Grid Background="#FF007EC8" 
           x:Name="gridMain" 
           Margin="20,20,20,20" 
           VerticalAlignment="Center" 
@@ -21,6 +21,8 @@
         <TextBlock x:Name="lblOverlay" HorizontalAlignment="Center" TextWrapping="Wrap" Text="PRESS SPACE TO START GAME" VerticalAlignment="Center" FontSize="60" FontFamily="Cascadia Code" TextAlignment="Center" Width="467" FontWeight="Black" Visibility="Collapsed"/>
         <TextBlock x:Name="txtScore" HorizontalAlignment="Left" Margin="116,-49,0,0" TextWrapping="Wrap" Text="0" VerticalAlignment="Top" FontSize="30" FontFamily="Cascadia Code"/>
         <TextBlock x:Name="lblScore" HorizontalAlignment="Left" Margin="-2,-51,0,0" TextWrapping="Wrap" Text="SCORE: " VerticalAlignment="Top" FontSize="30" FontFamily="Cascadia Code"/>
-        <TextBlock x:Name="txtSpeed" HorizontalAlignment="Left" Margin="535,-49,0,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top" FontSize="30" FontFamily="Cascadia Code" TextAlignment="Right" Width="161"/>
+        <TextBlock x:Name="txtSpeed" HorizontalAlignment="Right" Margin="535,-49,0,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top" FontSize="30" FontFamily="Cascadia Code" TextAlignment="Right" Width="auto"/>
+        <TextBlock x:Name="lblInfo" HorizontalAlignment="Left" Margin="250,-43,0,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top" FontSize="20" FontFamily="Cascadia Code" Width="auto"/>
+
     </Grid>
 </Page>

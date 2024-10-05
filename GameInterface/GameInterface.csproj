@@ -130,8 +130,10 @@
     </AppxManifest>
   </ItemGroup>
   <ItemGroup>
+    <Content Include="Assets\dot-clr.png" />
     <Content Include="Assets\dot.png" />
     <Content Include="Assets\enemy.png" />
+    <Content Include="Assets\fish.png" />
     <Content Include="Assets\LockScreenLogo.scale-200.png" />
     <Content Include="Assets\player.png" />
     <Content Include="Assets\SplashScreen.scale-200.png" />
@@ -139,6 +141,7 @@
     <Content Include="Assets\Square44x44Logo.scale-200.png" />
     <Content Include="Assets\Square44x44Logo.targetsize-24_altform-unplated.png" />
     <Content Include="Assets\StoreLogo.png" />
+    <Content Include="Assets\turtle.png" />
     <Content Include="Assets\Wide310x150Logo.scale-200.png" />
     <Content Include="Properties\Default.rd.xml" />
   </ItemGroup>
