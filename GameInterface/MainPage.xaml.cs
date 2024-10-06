@@ -95,7 +95,26 @@ namespace GameInterface
             else
             {
                 //if overlay is not visible change direction based on key press
-                currentDirection = e.VirtualKey;
+                switch (e.VirtualKey)
+                {
+                    case Windows.System.VirtualKey.W:
+                        currentDirection = Windows.System.VirtualKey.Up;
+                        break;
+                    case Windows.System.VirtualKey.A:
+                        currentDirection = Windows.System.VirtualKey.Left;
+                        break;
+                    case Windows.System.VirtualKey.S:
+                        currentDirection = Windows.System.VirtualKey.Down;
+                        break;
+                    case Windows.System.VirtualKey.D:
+                        currentDirection = Windows.System.VirtualKey.Right;
+                        break;
+                    default:
+                        currentDirection = e.VirtualKey;
+                        break;
+                }
+
+                //currentDirection = e.VirtualKey;
             }
         }
 
