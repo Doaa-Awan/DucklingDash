@@ -12,6 +12,9 @@ using Windows.Storage;
 using System.IO;
 using Windows.UI.Xaml.Shapes;
 using Windows.UI.Popups;
+using System.Threading.Tasks;
+using Windows.Media.Playback;
+using Windows.Media.Core;
 
 /* UWP Game Template
  * Created By: Melissa VanderLely
@@ -47,6 +50,7 @@ namespace GameInterface
         private Random random = new Random(); //random number generator
         private DispatcherTimer timer = new DispatcherTimer(); //timer
         private Windows.System.VirtualKey currentDirection; //current key press direction
+        private Windows.System.VirtualKey lastDirection;
 
         //set variables 
         private int score = 0;
@@ -54,8 +58,9 @@ namespace GameInterface
         private int speed = 10;
         private int defaultSpeed = 10;
 
-        StorageFile storageFile;
-
+        //StorageFolder assetsFolder;
+        MediaPlayer chirp = new MediaPlayer(); //chirp sound
+        //bool soundPlaying = false;
 
         public MainPage()
         {
@@ -68,6 +73,8 @@ namespace GameInterface
 
             //add event handler to timer
             timer.Tick += HandleMovement;
+
+            InitializeMediaPlayer();
         }
 
         private void CoreWindow_KeyDown(object sender, Windows.UI.Core.KeyEventArgs e)
@@ -171,14 +178,14 @@ namespace GameInterface
             if (bonusDot == null && (score == 10 || score == 35 || score == 50))
             {
                 bonusDot = CreatePiece("fish", 40, 0, 0, true);
-                lblInfo.Text = "ducks can eat fish :)".ToUpper();
+                lblInfo.Text = "ducks can eat fish";
             }
 
             //if enemy does not exist and score hits 15
             if (enemy == null && (score == 20 || score == 60))
             {
                 enemy = CreatePiece("turtle", 80, 0, 0, true);
-                lblInfo.Text = "do not eat turtle".ToUpper();
+                lblInfo.Text = "do not eat the turtle";
             }
 
             AlignBabyDucks(); //ensure baby ducks follow directly behind player
@@ -190,6 +197,9 @@ namespace GameInterface
             score += 2; //2 bonus points
             txtScore.Text = score.ToString(); //update score
 
+            if (score > highscore)
+                txtHighscore.Text = score.ToString();
+
             gridMain.Children.Remove(bonusDot.PieceImg); //remove piece
             bonusDot = null;
 
@@ -200,10 +210,15 @@ namespace GameInterface
         {
             score++; //increment score
             txtScore.Text = score.ToString(); //display score
+           
+            if(score > highscore)
+                txtHighscore.Text = score.ToString();
 
             //add baby duck
             babyDuck = CreatePiece("player", 40, 700, 700);
             collectedDucks.Add(babyDuck);
+
+            chirp.Play();
 
             SpawnNewDot(); //remove dot and spawn new one
             CheckLevelUp(); //check if level up
@@ -222,22 +237,22 @@ namespace GameInterface
         {
             switch (score)
             {
-                case 30:
-                    ResetGame("Level 2", 30, 5); //faster
+                case 40:
+                    ResetGame("Level 2", 40, 0); //faster = 5
                     CheckSpeed();
                     break;
-                case 65:
-                    ResetGame("Level 3", 65, 0); //extra fast
-                    CheckSpeed();
-                    break;
-                case 85:
-                    ResetGame("Level 4", 85, -5); //super fast
-                    CheckSpeed();
-                    break;
-                case 100:
-                    ResetGame("Level 5", 100, -10); //extreme
-                    CheckSpeed();
-                    break;
+                //case 65:
+                //    ResetGame("Level 3", 65, -10); //extra fast = 0
+                //    CheckSpeed();
+                //    break;
+                //case 85:
+                //    ResetGame("Level 4", 85, -5); //super fast = -5
+                //    CheckSpeed();
+                //    break;
+                //case 100:
+                //    ResetGame("Level 5", 100, -10); //extreme = -10
+                //    CheckSpeed();
+                //    break;
                 default:
                     break;
             }
@@ -251,17 +266,8 @@ namespace GameInterface
                 case 10:
                     txtSpeed.Text = "Normal".ToUpper();
                     break;
-                case 5:
-                    txtSpeed.Text = "Faster".ToUpper();
-                    break;
                 case 0:
-                    txtSpeed.Text = "Extra Fast".ToUpper();
-                    break;
-                case -5:
-                    txtSpeed.Text = "Super Fast".ToUpper();
-                    break;
-                case -10:
-                    txtSpeed.Text = "Extreme".ToUpper();
+                    txtSpeed.Text = "Faster".ToUpper();
                     break;
                 default:
                     break;
@@ -283,7 +289,7 @@ namespace GameInterface
                     playerBounds.Bottom > pieceBounds.Top);
         }
 
-        private void CheckCrash()
+        private async void CheckCrash()
         {
             int ignoreCount = 3; //ducks immediately behind player to ignore
             int playerLeft = (int)player.Location.Left;
@@ -307,6 +313,22 @@ namespace GameInterface
                 || (rotateTransform.Angle == 180 && playerLeft == -620) //left
                 || (rotateTransform.Angle == 0 && playerLeft == 620)) //right
                 ResetGame("Game Over", 0, defaultSpeed);
+
+            //check if player immediately goes in the opposite direction and crashes into baby duck
+            while(collectedDucks.Count > 0)
+            {
+                if ((lastDirection == Windows.System.VirtualKey.Up && currentDirection == Windows.System.VirtualKey.Down)
+                    || (lastDirection == Windows.System.VirtualKey.Down && currentDirection == Windows.System.VirtualKey.Up)
+                    || (lastDirection == Windows.System.VirtualKey.Left && currentDirection == Windows.System.VirtualKey.Right)
+                    || (lastDirection == Windows.System.VirtualKey.Right && currentDirection == Windows.System.VirtualKey.Left))
+                    {
+                        await Task.Delay(50);
+                        ResetGame("Game Over", 0, defaultSpeed);
+                        return;
+                    }
+                break;
+            }
+            lastDirection = currentDirection;                
         }
 
         private void AlignBabyDucks()
@@ -440,7 +462,7 @@ namespace GameInterface
                         highscore = num;
                     }
                 }
-                lblInfo.Text = highscore.ToString();
+                txtHighscore.Text = highscore.ToString();
             }
         }
 
@@ -514,6 +536,18 @@ namespace GameInterface
             playerStates.Clear();
 
             lblInfo.Text = ""; //clear text
+        }
+
+        private async void InitializeMediaPlayer()
+        {
+            StorageFolder appInstalled = Windows.ApplicationModel.Package.Current.InstalledLocation;
+            StorageFolder assetsFolder = await appInstalled.GetFolderAsync("Assets");
+
+            //get the file from the assets folder
+            StorageFile file = await assetsFolder.GetFileAsync("chirp.wav");
+
+            chirp.AutoPlay = false;
+            chirp.Source = MediaSource.CreateFromStorageFile(file);
         }
 
         private GamePiece CreatePiece(string imgSrc, int size, int left, int top, bool alignTopLeft = false)

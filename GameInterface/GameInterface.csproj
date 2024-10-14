@@ -130,9 +130,8 @@
     </AppxManifest>
   </ItemGroup>
   <ItemGroup>
-    <Content Include="Assets\dot-clr.png" />
+    <Content Include="Assets\chirp.wav" />
     <Content Include="Assets\dot.png" />
-    <Content Include="Assets\enemy.png" />
     <Content Include="Assets\fish.png" />
     <Content Include="Assets\LockScreenLogo.scale-200.png" />
     <Content Include="Assets\player.png" />
