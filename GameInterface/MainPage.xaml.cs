@@ -8,6 +8,10 @@ using Windows.Foundation;
 using Windows.UI.Xaml.Media;
 using Windows.System.Diagnostics.Telemetry;
 using Windows.ApplicationModel.VoiceCommands;
+using Windows.Storage;
+using System.IO;
+using Windows.UI.Xaml.Shapes;
+using Windows.UI.Popups;
 
 /* UWP Game Template
  * Created By: Melissa VanderLely
@@ -37,14 +41,21 @@ namespace GameInterface
         //list of player positions and angles
         private List<PlayerState> playerStates = new List<PlayerState>();
 
+        //list to hold scores
+        List<int> scores = new List<int>();
+
         private Random random = new Random(); //random number generator
         private DispatcherTimer timer = new DispatcherTimer(); //timer
         private Windows.System.VirtualKey currentDirection; //current key press direction
 
         //set variables 
         private int score = 0;
+        private int highscore = 0;
         private int speed = 10;
         private int defaultSpeed = 10;
+
+        StorageFile storageFile;
+
 
         public MainPage()
         {
@@ -65,6 +76,8 @@ namespace GameInterface
             {
                 if (e.VirtualKey == Windows.System.VirtualKey.Space) //space bar pressed
                 {
+                    ReadScores(false);
+
                     //disable overlay
                     lblOverlay.Visibility = Visibility.Collapsed;
                     screenOverlay.Visibility = Visibility.Collapsed;
@@ -368,17 +381,108 @@ namespace GameInterface
             piece.TargetPosition = new Point(randomX, randomY);
         }
 
+        private async void ReadScores(bool overwrite)
+        {
+            StorageFolder appInstalled = Windows.ApplicationModel.Package.Current.InstalledLocation;
+            StorageFolder assetsFolder = await appInstalled.GetFolderAsync("Assets");
+
+            //get the file from the assets folder
+            StorageFile storageFile = await assetsFolder.GetFileAsync("scores.txt");
+
+            if (storageFile != null)
+            {
+                //read the file contents into an IList collection of strings
+                IList<string> fileLines = await FileIO.ReadLinesAsync(storageFile);
+
+                //add each line in file to list of scores
+                foreach (string line in fileLines)
+                {
+                    scores.Add(Int32.Parse(line));
+                }
+
+                SetHighscore();
+            }
+            else if (overwrite) //game has ended and storage file has been cleared but updated scores in list
+            {
+                foreach (int num in scores)
+                {
+                    //overwrite file with values in scores list
+                    await FileIO.WriteTextAsync(storageFile, $"{num}\n");
+                }
+
+                SetHighscore();
+            }
+
+            //quit game = clear file/ overwrite scores
+            //reset game = add new high score
+            //compare scores to get highest and set new highscore as that one
+
+            //using (StreamReader stream = new StreamReader($"Assets/DataSet01.txt"))
+            //{
+            //    while (await stream.ReadLineAsync() is string line)
+            //    {
+            //        var pieces = line.Split(",");
+            //        Person pr = new Person(pieces[0], pieces[1], pieces[2], pieces[3], int.Parse(pieces[4]));
+            //        allPersons.Add(pr);
+            //    }
+            //}
+
+        }
+
+        private void SetHighscore()
+        {
+            if (scores.Count > 0)
+            {
+                foreach (int num in scores)
+                {
+                    if (num >= highscore)
+                    {
+                        highscore = num;
+                    }
+                }
+                lblInfo.Text = highscore.ToString();
+            }
+        }
+
         //reset game
         private void ResetGame(string message, int setScore, int setSpeed)
         {
+            if (score > highscore)
+            {
+                scores.Add(score); //add current score to list of scores
+            }
+
+            // Display a dialog asking if the user wants to restart the game
+            //var messageDialog = new MessageDialog("Do you want to restart the game?", "Game Over");
+            //messageDialog.Commands.Add(new UICommand("Yes", null, 0));
+            //messageDialog.Commands.Add(new UICommand("No", null, 1));
+
+            //// Set the default command to "Yes" (so Enter acts as confirmation)
+            //messageDialog.DefaultCommandIndex = 0;
+            //messageDialog.CancelCommandIndex = 1;
+
+            //var result = await messageDialog.ShowAsync();
+
+            //// Check if the user selected "No", in which case exit the game
+            //if ((int)result.Id == 1)
+            //{
+            //    ReadScores(true); //overwrite scores file with list of scores
+            //    Application.Current.Exit(); // Exits the app
+            //    return;
+            //}
+
+            //SetHighscore(); //check for new highscore
+
             timer.Stop(); //stop timer
 
             currentDirection = Windows.System.VirtualKey.None; //reset direction
 
+            //reset score and speed
+
             score = setScore; //set new score
 
             speed = setSpeed; //set new speed
-
+           
             //overlay
             screenOverlay.Visibility = Visibility.Visible;
             lblOverlay.Visibility = Visibility.Visible;
