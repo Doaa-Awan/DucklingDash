@@ -135,6 +135,7 @@
     <Content Include="Assets\fish.png" />
     <Content Include="Assets\LockScreenLogo.scale-200.png" />
     <Content Include="Assets\player.png" />
+    <Content Include="Assets\quack.wav" />
     <Content Include="Assets\scores.txt" />
     <Content Include="Assets\splash.wav" />
     <Content Include="Assets\SplashScreen.scale-200.png" />

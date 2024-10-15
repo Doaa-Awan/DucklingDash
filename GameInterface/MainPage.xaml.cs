@@ -61,7 +61,7 @@ namespace GameInterface
         //StorageFolder assetsFolder;
 
         MediaPlayer chirp = new MediaPlayer(); //chirp sound
-        MediaPlayer splash = new MediaPlayer(); //splash sound
+        MediaPlayer quack = new MediaPlayer(); //quack sound
 
         //bool soundPlaying = false;
 
@@ -184,7 +184,7 @@ namespace GameInterface
             }
 
             //if fish does not exist and score hits certain points, generate fish
-            if (bonusDot == null && (score == 10 || score == 35 || score == 50))
+            if (bonusDot == null && (score == 10 || score == 35 || score == 45))
             {
                 bonusDot = CreatePiece("fish", 40, 0, 0, true);
                 lblInfo.Text = "ducks can eat fish";
@@ -195,6 +195,13 @@ namespace GameInterface
             {
                 enemy = CreatePiece("turtle", 80, 0, 0, true);
                 lblInfo.Text = "do not eat the turtle";
+            }
+
+            //remove turtle when score is at 40
+            if (enemy != null && score == 40)
+            {
+                gridMain.Children.Remove(enemy.PieceImg);
+                enemy = null;
             }
 
             AlignBabyDucks(); //ensure baby ducks follow directly behind player
@@ -246,8 +253,8 @@ namespace GameInterface
         {
             switch (score)
             {
-                case 40:
-                    ResetGame("Level 2", 40, 0); //faster = 5
+                case 50:
+                    ResetGame("Level 2", 50, 0); //faster = 5
                     CheckSpeed();
                     break;
                 //case 65:
@@ -276,7 +283,7 @@ namespace GameInterface
                     txtSpeed.Text = "Normal".ToUpper();
                     break;
                 case 0:
-                    txtSpeed.Text = "Faster".ToUpper();
+                    txtSpeed.Text = "Fast".ToUpper();
                     break;
                 default:
                     break;
@@ -478,6 +485,8 @@ namespace GameInterface
         //reset game
         private void ResetGame(string message, int setScore, int setSpeed)
         {
+            quack.Play();
+
             if (score > highscore)
             {
                 scores.Add(score); //add current score to list of scores
@@ -554,13 +563,13 @@ namespace GameInterface
 
             //get the file from the assets folder
             StorageFile chirpFile = await assetsFolder.GetFileAsync("chirp.wav");
-            StorageFile splashFile = await assetsFolder.GetFileAsync("splash.wav");
+            StorageFile quackFile = await assetsFolder.GetFileAsync("quack.wav");
 
             chirp.AutoPlay = false;
             chirp.Source = MediaSource.CreateFromStorageFile(chirpFile);
 
-            splash.AutoPlay = false;
-            splash.Source = MediaSource.CreateFromStorageFile(splashFile);
+            quack.AutoPlay = false;
+            quack.Source = MediaSource.CreateFromStorageFile(quackFile);
         }
 
         private GamePiece CreatePiece(string imgSrc, int size, int left, int top, bool alignTopLeft = false)
