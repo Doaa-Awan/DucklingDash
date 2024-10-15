@@ -4,6 +4,7 @@ using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Media;
 using Windows.Foundation;
 using System.Text.RegularExpressions;
+using Windows.Media.Playback;
 
 /* UWP Game Library
  * Written By: Melissa VanderLely

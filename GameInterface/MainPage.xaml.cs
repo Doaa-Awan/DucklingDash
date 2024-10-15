@@ -59,7 +59,10 @@ namespace GameInterface
         private int defaultSpeed = 10;
 
         //StorageFolder assetsFolder;
+
         MediaPlayer chirp = new MediaPlayer(); //chirp sound
+        MediaPlayer splash = new MediaPlayer(); //splash sound
+
         //bool soundPlaying = false;
 
         public MainPage()
@@ -129,6 +132,9 @@ namespace GameInterface
                     case Windows.System.VirtualKey.D:
                         currentDirection = Windows.System.VirtualKey.Right;
                         break;
+                    case Windows.System.VirtualKey.Space:
+                        currentDirection = lastDirection;
+                        break;
                     default:
                         currentDirection = e.VirtualKey;
                         break;
@@ -142,6 +148,9 @@ namespace GameInterface
         {
             //move player continuously in current direction
             player.Move(currentDirection, 20);
+
+            //if (currentDirection != lastDirection)
+            //    splash.Play();
 
             //if player collides with dot, collect dot
             if (CollisionDetected(player, dot))
@@ -544,10 +553,14 @@ namespace GameInterface
             StorageFolder assetsFolder = await appInstalled.GetFolderAsync("Assets");
 
             //get the file from the assets folder
-            StorageFile file = await assetsFolder.GetFileAsync("chirp.wav");
+            StorageFile chirpFile = await assetsFolder.GetFileAsync("chirp.wav");
+            StorageFile splashFile = await assetsFolder.GetFileAsync("splash.wav");
 
             chirp.AutoPlay = false;
-            chirp.Source = MediaSource.CreateFromStorageFile(file);
+            chirp.Source = MediaSource.CreateFromStorageFile(chirpFile);
+
+            splash.AutoPlay = false;
+            splash.Source = MediaSource.CreateFromStorageFile(splashFile);
         }
 
         private GamePiece CreatePiece(string imgSrc, int size, int left, int top, bool alignTopLeft = false)
