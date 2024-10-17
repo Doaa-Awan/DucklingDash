@@ -124,6 +124,74 @@
                    Width="467" 
                    Visibility="Collapsed" Grid.ColumnSpan="2" Margin="117,0,0,0"/>
 
+            <Button x:Name="btnScores"
+                    Grid.Column="1"
+                    Grid.Row="2"
+                    VerticalAlignment="Bottom"
+                    HorizontalAlignment="Right"
+                    Height="70"
+                    Width="auto"
+                    Margin="30"
+                    Padding="0"
+                    CornerRadius="50" 
+                    Visibility="Collapsed"
+                    Click="btnScores_Click"
+                    >
+                <Image Source="Assets/scoresIcon.png"/>
+            </Button>
+
+            <Grid x:Name="gridScores" 
+                   HorizontalAlignment="Center" 
+                   VerticalAlignment="Center" 
+                   Background="Black"
+                   BorderBrush="White"
+                   BorderThickness="1"
+                   CornerRadius="20"
+                   Height="400" 
+                   Width="500" 
+                   Visibility="Collapsed">
+
+                <TextBlock x:Name= "txtScores"
+                               Text="High Scores"
+                               Padding="40"
+                               FontSize="20"/>
+            </Grid>
+
+            <Grid x:Name="gridRestart" 
+                    HorizontalAlignment="Center" 
+                    VerticalAlignment="Center" 
+                    Background="SkyBlue"
+                    BorderBrush="White"
+                    BorderThickness="1"
+                    CornerRadius="20"
+                    Height="100" 
+                    Width="300" 
+                    Visibility="Collapsed">
+                
+                <TextBlock x:Name="textBlock" 
+                           HorizontalAlignment="Center" 
+                           TextWrapping="Wrap" 
+                           Text="Do you want to restart the game?" 
+                           VerticalAlignment="Top" 
+                           Margin="0,20,0,0"/>
+                
+                <Button x:Name="btnQuit" 
+                        Content="Quit" 
+                        CornerRadius="10"
+                        Width="100"
+                        VerticalAlignment="Bottom" 
+                        Margin="40,0,0,18" Click="btnQuit_Click"/>
+                
+                <Button x:Name="btnRestart" 
+                        Content="Restart" 
+                        CornerRadius="10"
+                        Width="100"
+                        VerticalAlignment="Bottom"
+                        HorizontalAlignment="Right" 
+                        Margin="0,0,40,18" 
+                        Click="btnRestart_Click"/>
+            </Grid>
+
         </Grid>
 
     </Grid>

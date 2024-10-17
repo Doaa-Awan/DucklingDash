@@ -58,66 +58,100 @@ namespace GameInterface
         private int speed = 10;
         private int defaultSpeed = 10;
 
-        //StorageFolder assetsFolder;
-
+        //sounds
         MediaPlayer chirp = new MediaPlayer(); //chirp sound
         MediaPlayer quack = new MediaPlayer(); //quack sound
 
-        //bool soundPlaying = false;
+        //TODO: Add sound for eating fish
+
+        //change settings for level up
+        private string message = "";
+        private int setScore = 0;
+        private int setSpeed = 10;
+
+        SolidColorBrush highlightBrush = new SolidColorBrush(Windows.UI.ColorHelper.FromArgb(0xFF, 0x6D, 0xC9, 0xEF));
+        SolidColorBrush defaultBrush = new SolidColorBrush(Windows.UI.Colors.Transparent);
 
         public MainPage()
         {
             this.InitializeComponent();
             Window.Current.CoreWindow.KeyDown += CoreWindow_KeyDown;
 
+            ReadScores(false);
+
             //set overlay
             screenOverlay.Visibility = Visibility.Visible;
             lblOverlay.Visibility = Visibility.Visible;
+            btnScores.Visibility = Visibility.Visible;
+            //gridScores.Visibility = Visibility.Collapsed;
 
             //add event handler to timer
             timer.Tick += HandleMovement;
+
+            // Set the BorderBrush
+            btnRestart.BorderBrush = highlightBrush;
+            btnQuit.BorderBrush = defaultBrush;
 
             InitializeMediaPlayer();
         }
 
         private void CoreWindow_KeyDown(object sender, Windows.UI.Core.KeyEventArgs e)
         {
+            if (gridRestart.Visibility == Visibility.Visible) //if restart menu is visible
+            {
+                // Set focus to the Restart button
+                // btnRestart.Focus(FocusState.Programmatic);
+
+                // Check if btnRestart has the specific color and if Enter key is pressed
+                if (((SolidColorBrush)btnRestart.BorderBrush).Color == highlightBrush.Color && e.VirtualKey == Windows.System.VirtualKey.Enter)
+                {
+                    ResetGame();
+
+                    gridRestart.Visibility = Visibility.Collapsed;
+
+                    //overlay
+                    screenOverlay.Visibility = Visibility.Visible;
+                    lblOverlay.Visibility = Visibility.Visible;
+                    btnScores.Visibility = Visibility.Visible;
+
+                }
+                // Check if btnQuit has the specific color and if Enter key is pressed
+                else if (((SolidColorBrush)btnQuit.BorderBrush).Color == highlightBrush.Color && e.VirtualKey == Windows.System.VirtualKey.Enter)
+                {
+                    Application.Current.Exit();
+                }
+
+                // Check if btnRestart has the specific color and if Left arrow key is pressed
+                if (((SolidColorBrush)btnRestart.BorderBrush).Color == highlightBrush.Color && e.VirtualKey == Windows.System.VirtualKey.Left)
+                {
+                    btnQuit.BorderBrush = highlightBrush;
+                    btnRestart.BorderBrush = defaultBrush;
+                }
+
+                // Check if btnQuit has the specific color and if Right arrow key is pressed
+                if (((SolidColorBrush)btnQuit.BorderBrush).Color == highlightBrush.Color && e.VirtualKey == Windows.System.VirtualKey.Right)
+                {
+                    btnRestart.BorderBrush = highlightBrush;
+                    btnQuit.BorderBrush = defaultBrush;
+                }
+            }
+
             if (lblOverlay.Visibility == Visibility.Visible) //if overlay is visible
             {
                 if (e.VirtualKey == Windows.System.VirtualKey.Space) //space bar pressed
-                {
-                    ReadScores(false);
+                    StartGame();
 
-                    //disable overlay
-                    lblOverlay.Visibility = Visibility.Collapsed;
-                    screenOverlay.Visibility = Visibility.Collapsed;
-
-                    //set current direction to right
-                    currentDirection = Windows.System.VirtualKey.Right;
-
-                    //display score
-                    txtScore.Text = score.ToString();
-
-                    //create initial player and dot pieces
-                    player = CreatePiece("player", 80, -550, -510);  // img, size, left, top
-                    dot = CreatePiece("dot", 15, 210, -300);
-
-                    //add initial player location and angle to list
-                    playerStates.Add(new PlayerState { Position = player.Location, RotationAngle = 0 });
-
-                    //set initial speed of player movement based on timer
-                    timer.Interval = TimeSpan.FromMilliseconds(speed);
-
-                    //display speed setting based on score
-                    CheckSpeed();
-
-                    //start timer
-                    timer.Start();
-                }
+                //if (btnScores.Visibility == Visibility.Visible && e.VirtualKey == Windows.System.VirtualKey.Enter)
+                //{
+                //    if (gridScores.Visibility == Visibility.Collapsed)
+                //        gridScores.Visibility = Visibility.Visible;
+                //    else
+                //        gridScores.Visibility = Visibility.Collapsed;
+                //}
             }
-            else
+            else if (lblOverlay.Visibility == Visibility.Collapsed || gridRestart.Visibility == Visibility.Collapsed)
             {
-                //if overlay is not visible change direction based on key press
+              //if overlay is not visible change direction based on key press
                 switch (e.VirtualKey)
                 {
                     case Windows.System.VirtualKey.W:
@@ -132,25 +166,50 @@ namespace GameInterface
                     case Windows.System.VirtualKey.D:
                         currentDirection = Windows.System.VirtualKey.Right;
                         break;
-                    case Windows.System.VirtualKey.Space:
+                    case Windows.System.VirtualKey.Space:                         
                         currentDirection = lastDirection;
                         break;
                     default:
                         currentDirection = e.VirtualKey;
                         break;
                 }
-
-                //currentDirection = e.VirtualKey;
             }
+        }
+
+        private void StartGame()
+        {
+            //disable overlay
+            lblOverlay.Visibility = Visibility.Collapsed;
+            screenOverlay.Visibility = Visibility.Collapsed;
+            btnScores.Visibility = Visibility.Collapsed;
+
+            //set current direction to right
+            currentDirection = Windows.System.VirtualKey.Right;
+
+            //display score
+            txtScore.Text = score.ToString();
+
+            //create initial player and dot pieces
+            player = CreatePiece("player", 80, -550, -510);  // img, size, left, top
+            dot = CreatePiece("dot", 15, 210, -300);
+
+            //add initial player location and angle to list
+            playerStates.Add(new PlayerState { Position = player.Location, RotationAngle = 0 });
+
+            //set initial speed of player movement based on timer
+            timer.Interval = TimeSpan.FromMilliseconds(speed);
+
+            //display speed setting based on score
+            CheckSpeed();
+
+            //start timer
+            timer.Start();
         }
 
         private void HandleMovement(object sender, object e)
         {
             //move player continuously in current direction
             player.Move(currentDirection, 20);
-
-            //if (currentDirection != lastDirection)
-            //    splash.Play();
 
             //if player collides with dot, collect dot
             if (CollisionDetected(player, dot))
@@ -180,20 +239,22 @@ namespace GameInterface
             //if enemy exists and player hits it
             if (enemy != null && CollisionDetected(player, enemy))
             {
-                ResetGame("Game Over", 0, defaultSpeed);
+                Crash();
             }
 
             //if fish does not exist and score hits certain points, generate fish
             if (bonusDot == null && (score == 10 || score == 35 || score == 45))
             {
                 bonusDot = CreatePiece("fish", 40, 0, 0, true);
-                lblInfo.Text = "ducks can eat fish";
+                bonusDot.PieceImg.Opacity = 0.50;
+                lblInfo.Text = "eat the fish";
             }
 
             //if enemy does not exist and score hits 15
             if (enemy == null && (score == 20 || score == 60))
             {
                 enemy = CreatePiece("turtle", 80, 0, 0, true);
+                enemy.PieceImg.Opacity = 0.50;
                 lblInfo.Text = "do not eat the turtle";
             }
 
@@ -208,45 +269,7 @@ namespace GameInterface
             CheckCrash(); //check if player hits border or baby ducks
         }
 
-        private void HandleBonusDotCollection() //bonus points fish collected
-        {
-            score += 2; //2 bonus points
-            txtScore.Text = score.ToString(); //update score
-
-            if (score > highscore)
-                txtHighscore.Text = score.ToString();
-
-            gridMain.Children.Remove(bonusDot.PieceImg); //remove piece
-            bonusDot = null;
-
-            CheckLevelUp(); //check if level up
-        }
-
-        private void HandleDotCollection() //dot collected
-        {
-            score++; //increment score
-            txtScore.Text = score.ToString(); //display score
-           
-            if(score > highscore)
-                txtHighscore.Text = score.ToString();
-
-            //add baby duck
-            babyDuck = CreatePiece("player", 40, 700, 700);
-            collectedDucks.Add(babyDuck);
-
-            chirp.Play();
-
-            SpawnNewDot(); //remove dot and spawn new one
-            CheckLevelUp(); //check if level up
-        }
-
-        private void SpawnNewDot() //remove dot collected and generate new one
-        {
-            int gridSize = 620;
-            int randomNum = random.Next(0, gridSize - 30);
-            gridMain.Children.Remove(dot.PieceImg);
-            dot = CreatePiece("dot", 15, randomNum, randomNum);
-        }
+        #region Level Settings
 
         //reset game and update level (speed) depending on score reached
         private void CheckLevelUp()
@@ -254,21 +277,17 @@ namespace GameInterface
             switch (score)
             {
                 case 50:
-                    ResetGame("Level 2", 50, 0); //faster = 5
+                    message = "Level 2\n\n";
+                    setScore = 50;
+                    setSpeed = 0;
+                    //PrepReset();
+                    ResetGame();
                     CheckSpeed();
+                    //overlay
+                    screenOverlay.Visibility = Visibility.Visible;
+                    lblOverlay.Visibility = Visibility.Visible;
+                    btnScores.Visibility = Visibility.Visible;
                     break;
-                //case 65:
-                //    ResetGame("Level 3", 65, -10); //extra fast = 0
-                //    CheckSpeed();
-                //    break;
-                //case 85:
-                //    ResetGame("Level 4", 85, -5); //super fast = -5
-                //    CheckSpeed();
-                //    break;
-                //case 100:
-                //    ResetGame("Level 5", 100, -10); //extreme = -10
-                //    CheckSpeed();
-                //    break;
                 default:
                     break;
             }
@@ -290,6 +309,219 @@ namespace GameInterface
             }
         }
 
+        #endregion
+
+        private void Crash()
+        {
+            quack.Play();
+            message = "";
+            setScore = 0;
+            setSpeed = defaultSpeed;
+            ResetGame();
+
+            //TODO: Add condition to check if score is greater than highscore, and if it is, display gridHighscore instead of gridRestart
+            gridRestart.Visibility = Visibility.Visible;
+        }
+
+        //reset game
+        private void ResetGame()
+        {
+            timer.Stop(); //stop timer
+            currentDirection = Windows.System.VirtualKey.None; //reset direction
+
+            //remove all game pieces from the screen
+            gridMain.Children.Remove(player.PieceImg);
+            gridMain.Children.Remove(dot.PieceImg);
+
+            if (bonusDot != null) //if bonusDot exists, remove it
+            {
+                gridMain.Children.Remove(bonusDot.PieceImg);
+                bonusDot = null;
+            }
+
+            if (enemy != null) //if enemy exists, remove it
+            {
+                gridMain.Children.Remove(enemy.PieceImg);
+                enemy = null;
+            }
+
+            foreach (var babyDuck in collectedDucks) //remove all baby ducks
+            {
+                gridMain.Children.Remove(babyDuck.PieceImg);
+            }
+
+            //if (score > highscore)
+            //{
+            //    scores.Add(score); //add current score to list of scores
+            //}
+            scores.Add(score);
+
+            score = setScore; //set new score
+
+            speed = setSpeed; //set new speed
+
+            lblOverlay.Text = $"{message}Press Space to start".ToUpper();
+
+            //clear lists
+            collectedDucks.Clear();
+            playerStates.Clear();
+
+            lblInfo.Text = ""; //clear text
+        }
+
+        #region High Score
+
+        private async void ReadScores(bool overwrite)
+        {
+            StorageFolder appInstalled = Windows.ApplicationModel.Package.Current.InstalledLocation;
+            StorageFolder assetsFolder = await appInstalled.GetFolderAsync("Assets");
+
+            //get the file from the assets folder
+            StorageFile storageFile = await assetsFolder.GetFileAsync("scores.txt");
+
+            if (storageFile != null)
+            {
+                //read the file contents into an IList collection of strings
+                IList<string> fileLines = await FileIO.ReadLinesAsync(storageFile);
+
+                txtScores.Text += "\n\n";
+
+                //add each line in file to list of scores
+                foreach (string line in fileLines)
+                {
+                    scores.Add(Int32.Parse(line)); //add to list collection of scores
+                    txtScores.Text += $"{line}\n";
+                }
+
+                //TODO: Display scores in txtScores
+
+                if (overwrite) //game has ended and storage file has been cleared but updated scores in list
+                {
+                    // Join all scores into a single string separated by newlines
+                    string allScores = string.Join("\n", scores);
+
+                    // Write all the scores at once to the file
+                    await FileIO.WriteTextAsync(storageFile, allScores);
+
+                    //foreach (int num in scores)
+                    //{
+                    //    //overwrite file with values in scores list
+                    //    await FileIO.WriteTextAsync(storageFile, $"{num}\n");
+                    //}
+                }
+
+                SetHighscore();
+            }
+        }
+
+        private void SetHighscore()
+        {
+            //find highest score from text file
+            if (scores.Count > 0)
+            {
+                foreach (int num in scores)
+                {
+                    if (num >= highscore)
+                    {
+                        highscore = num;
+                    }
+                }
+                txtHighscore.Text = highscore.ToString();
+            }
+        }
+
+        #endregion
+
+        #region Collect Points
+
+        private void HandleBonusDotCollection() //bonus points fish collected
+        {
+            score += 2; //2 bonus points
+            txtScore.Text = score.ToString(); //update score
+
+            if (score > highscore)
+                txtHighscore.Text = score.ToString();
+
+            gridMain.Children.Remove(bonusDot.PieceImg); //remove piece
+            bonusDot = null;
+
+            CheckLevelUp(); //check if level up
+        }
+
+        private void HandleDotCollection() //dot collected
+        {
+            score++; //increment score
+            txtScore.Text = score.ToString(); //display score
+
+            if (score > highscore)
+                txtHighscore.Text = score.ToString();
+
+            //add baby duck
+            babyDuck = CreatePiece("player", 40, 700, 700);
+            collectedDucks.Add(babyDuck);
+
+            chirp.Play();
+
+            SpawnNewDot(); //remove dot and spawn new one
+            CheckLevelUp(); //check if level up
+        }
+
+        private void SpawnNewDot() //remove dot collected and generate new one
+        {
+            int gridSize = 620;
+            int randomNum = random.Next(0, gridSize - 30);
+            gridMain.Children.Remove(dot.PieceImg);
+            dot = CreatePiece("dot", 15, randomNum, randomNum);
+        }
+
+        #endregion 
+
+        #region Collision
+
+        private async void CheckCrash()
+        {
+            int ignoreCount = 3; //ducks immediately behind player to ignore
+            int playerLeft = (int)player.Location.Left;
+            int playerTop = (int)player.Location.Top;
+            RotateTransform rotateTransform = player.RotateTransform;
+
+            //start checking for collision from the baby duck at index 'ignoreCount'
+            for (int i = ignoreCount; i < collectedDucks.Count; i++)
+            {
+                GamePiece babyDuck = collectedDucks[i];
+                if (CollisionDetected(player, babyDuck))
+                {
+                    Crash();
+                    break;
+                }
+            }
+
+            //check if player hit border while facing it
+            if ((rotateTransform.Angle == 270 && playerTop == -620) //top
+                || (rotateTransform.Angle == 90 && playerTop == 620) //down
+                || (rotateTransform.Angle == 180 && playerLeft == -620) //left
+                || (rotateTransform.Angle == 0 && playerLeft == 620)) //right
+            {
+                Crash();
+            }
+
+            //check if player immediately goes in the opposite direction and crashes into baby duck
+            while (collectedDucks.Count > 0)
+            {
+                if ((lastDirection == Windows.System.VirtualKey.Up && currentDirection == Windows.System.VirtualKey.Down)
+                    || (lastDirection == Windows.System.VirtualKey.Down && currentDirection == Windows.System.VirtualKey.Up)
+                    || (lastDirection == Windows.System.VirtualKey.Left && currentDirection == Windows.System.VirtualKey.Right)
+                    || (lastDirection == Windows.System.VirtualKey.Right && currentDirection == Windows.System.VirtualKey.Left))
+                {
+                    await Task.Delay(40);
+                    Crash();
+                    return;
+                }
+                break;
+            }
+            lastDirection = currentDirection;
+        }
+
         //check collision with dot or ducks
         private bool CollisionDetected(GamePiece playerPiece, GamePiece gamePiece)
         {
@@ -305,46 +537,24 @@ namespace GameInterface
                     playerBounds.Bottom > pieceBounds.Top);
         }
 
-        private async void CheckCrash()
+        #endregion
+
+        #region Initialize
+
+        private async void InitializeMediaPlayer()
         {
-            int ignoreCount = 3; //ducks immediately behind player to ignore
-            int playerLeft = (int)player.Location.Left;
-            int playerTop = (int)player.Location.Top;
-            RotateTransform rotateTransform = player.RotateTransform;
+            StorageFolder appInstalled = Windows.ApplicationModel.Package.Current.InstalledLocation;
+            StorageFolder assetsFolder = await appInstalled.GetFolderAsync("Assets");
 
-            //start checking for collision from the baby duck at index 'ignoreCount'
-            for (int i = ignoreCount; i < collectedDucks.Count; i++)
-            {
-                GamePiece babyDuck = collectedDucks[i];
-                if (CollisionDetected(player, babyDuck))
-                {
-                    ResetGame("Game Over", 0, defaultSpeed); //set score to 0 and reset speed
-                    break;
-                }
-            }
+            //get the file from the assets folder
+            StorageFile chirpFile = await assetsFolder.GetFileAsync("chirp.wav");
+            StorageFile quackFile = await assetsFolder.GetFileAsync("quack.wav");
 
-            //check if player hit border while facing it
-            if ((rotateTransform.Angle == 270 && playerTop == -620) //top
-                || (rotateTransform.Angle == 90 && playerTop == 620) //down
-                || (rotateTransform.Angle == 180 && playerLeft == -620) //left
-                || (rotateTransform.Angle == 0 && playerLeft == 620)) //right
-                ResetGame("Game Over", 0, defaultSpeed);
+            chirp.AutoPlay = false;
+            chirp.Source = MediaSource.CreateFromStorageFile(chirpFile);
 
-            //check if player immediately goes in the opposite direction and crashes into baby duck
-            while(collectedDucks.Count > 0)
-            {
-                if ((lastDirection == Windows.System.VirtualKey.Up && currentDirection == Windows.System.VirtualKey.Down)
-                    || (lastDirection == Windows.System.VirtualKey.Down && currentDirection == Windows.System.VirtualKey.Up)
-                    || (lastDirection == Windows.System.VirtualKey.Left && currentDirection == Windows.System.VirtualKey.Right)
-                    || (lastDirection == Windows.System.VirtualKey.Right && currentDirection == Windows.System.VirtualKey.Left))
-                    {
-                        await Task.Delay(50);
-                        ResetGame("Game Over", 0, defaultSpeed);
-                        return;
-                    }
-                break;
-            }
-            lastDirection = currentDirection;                
+            quack.AutoPlay = false;
+            quack.Source = MediaSource.CreateFromStorageFile(quackFile);
         }
 
         private void AlignBabyDucks()
@@ -419,159 +629,6 @@ namespace GameInterface
             piece.TargetPosition = new Point(randomX, randomY);
         }
 
-        private async void ReadScores(bool overwrite)
-        {
-            StorageFolder appInstalled = Windows.ApplicationModel.Package.Current.InstalledLocation;
-            StorageFolder assetsFolder = await appInstalled.GetFolderAsync("Assets");
-
-            //get the file from the assets folder
-            StorageFile storageFile = await assetsFolder.GetFileAsync("scores.txt");
-
-            if (storageFile != null)
-            {
-                //read the file contents into an IList collection of strings
-                IList<string> fileLines = await FileIO.ReadLinesAsync(storageFile);
-
-                //add each line in file to list of scores
-                foreach (string line in fileLines)
-                {
-                    scores.Add(Int32.Parse(line));
-                }
-
-                SetHighscore();
-            }
-            else if (overwrite) //game has ended and storage file has been cleared but updated scores in list
-            {
-                foreach (int num in scores)
-                {
-                    //overwrite file with values in scores list
-                    await FileIO.WriteTextAsync(storageFile, $"{num}\n");
-                }
-
-                SetHighscore();
-            }
-
-            //quit game = clear file/ overwrite scores
-            //reset game = add new high score
-            //compare scores to get highest and set new highscore as that one
-
-            //using (StreamReader stream = new StreamReader($"Assets/DataSet01.txt"))
-            //{
-            //    while (await stream.ReadLineAsync() is string line)
-            //    {
-            //        var pieces = line.Split(",");
-            //        Person pr = new Person(pieces[0], pieces[1], pieces[2], pieces[3], int.Parse(pieces[4]));
-            //        allPersons.Add(pr);
-            //    }
-            //}
-
-        }
-
-        private void SetHighscore()
-        {
-            if (scores.Count > 0)
-            {
-                foreach (int num in scores)
-                {
-                    if (num >= highscore)
-                    {
-                        highscore = num;
-                    }
-                }
-                txtHighscore.Text = highscore.ToString();
-            }
-        }
-
-        //reset game
-        private void ResetGame(string message, int setScore, int setSpeed)
-        {
-            quack.Play();
-
-            if (score > highscore)
-            {
-                scores.Add(score); //add current score to list of scores
-            }
-
-            // Display a dialog asking if the user wants to restart the game
-            //var messageDialog = new MessageDialog("Do you want to restart the game?", "Game Over");
-            //messageDialog.Commands.Add(new UICommand("Yes", null, 0));
-            //messageDialog.Commands.Add(new UICommand("No", null, 1));
-
-            //// Set the default command to "Yes" (so Enter acts as confirmation)
-            //messageDialog.DefaultCommandIndex = 0;
-            //messageDialog.CancelCommandIndex = 1;
-
-            //var result = await messageDialog.ShowAsync();
-
-            //// Check if the user selected "No", in which case exit the game
-            //if ((int)result.Id == 1)
-            //{
-            //    ReadScores(true); //overwrite scores file with list of scores
-            //    Application.Current.Exit(); // Exits the app
-            //    return;
-            //}
-
-            //SetHighscore(); //check for new highscore
-
-            timer.Stop(); //stop timer
-
-            currentDirection = Windows.System.VirtualKey.None; //reset direction
-
-            //reset score and speed
-
-            score = setScore; //set new score
-
-            speed = setSpeed; //set new speed
-           
-            //overlay
-            screenOverlay.Visibility = Visibility.Visible;
-            lblOverlay.Visibility = Visibility.Visible;
-            lblOverlay.Text = $"{message}\n\nPress Space to start".ToUpper();
-
-            //remove all game pieces from the screen
-            gridMain.Children.Remove(player.PieceImg);
-            gridMain.Children.Remove(dot.PieceImg);
-
-            if(bonusDot != null) //if bonusDot exists, remove it
-            {
-                gridMain.Children.Remove(bonusDot.PieceImg);
-                bonusDot = null;
-            }
-
-            if (enemy != null) //if enemy exists, remove it
-            {
-                gridMain.Children.Remove(enemy.PieceImg);
-                enemy = null;
-            }
-
-            foreach (var babyDuck in collectedDucks) //remove all baby ducks
-            {
-                gridMain.Children.Remove(babyDuck.PieceImg);
-            }
-
-            //clear lists
-            collectedDucks.Clear();
-            playerStates.Clear();
-
-            lblInfo.Text = ""; //clear text
-        }
-
-        private async void InitializeMediaPlayer()
-        {
-            StorageFolder appInstalled = Windows.ApplicationModel.Package.Current.InstalledLocation;
-            StorageFolder assetsFolder = await appInstalled.GetFolderAsync("Assets");
-
-            //get the file from the assets folder
-            StorageFile chirpFile = await assetsFolder.GetFileAsync("chirp.wav");
-            StorageFile quackFile = await assetsFolder.GetFileAsync("quack.wav");
-
-            chirp.AutoPlay = false;
-            chirp.Source = MediaSource.CreateFromStorageFile(chirpFile);
-
-            quack.AutoPlay = false;
-            quack.Source = MediaSource.CreateFromStorageFile(quackFile);
-        }
-
         private GamePiece CreatePiece(string imgSrc, int size, int left, int top, bool alignTopLeft = false)
         {
             Image img = new Image();
@@ -597,5 +654,37 @@ namespace GameInterface
 
             return new GamePiece(img);
         }
+
+        #endregion
+
+        #region Buttons
+        private void btnScores_Click(object sender, RoutedEventArgs e)
+        {
+            if (gridScores.Visibility == Visibility.Collapsed)
+                gridScores.Visibility = Visibility.Visible;
+            else
+                gridScores.Visibility = Visibility.Collapsed;
+        }
+
+        private void btnQuit_Click(object sender, RoutedEventArgs e)
+        {
+            ReadScores(true);
+            Application.Current.Exit();
+        }
+
+        private void btnRestart_Click(object sender, RoutedEventArgs e)
+        {
+            ResetGame();
+
+            gridRestart.Visibility = Visibility.Collapsed;
+
+            //overlay
+            screenOverlay.Visibility = Visibility.Visible;
+            lblOverlay.Visibility = Visibility.Visible;
+            btnScores.Visibility = Visibility.Visible;
+        }
+
+        #endregion
+
     }
 }

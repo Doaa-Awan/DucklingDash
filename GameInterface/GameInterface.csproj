@@ -137,6 +137,7 @@
     <Content Include="Assets\player.png" />
     <Content Include="Assets\quack.wav" />
     <Content Include="Assets\scores.txt" />
+    <Content Include="Assets\scoresIcon.png" />
     <Content Include="Assets\splash.wav" />
     <Content Include="Assets\SplashScreen.scale-200.png" />
     <Content Include="Assets\Square150x150Logo.scale-200.png" />
