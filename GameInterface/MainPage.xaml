@@ -72,7 +72,7 @@
             Width="auto"
             VerticalAlignment="Bottom" 
             TextAlignment="Right" 
-            Text="SPEED" 
+            Text="" 
             FontSize="30" 
             FontFamily="Cascadia Code" 
             />
@@ -86,9 +86,9 @@
             VerticalAlignment="Top" 
             TextWrapping="Wrap" 
             Text="" 
-            FontSize="25" 
-            FontFamily="Imprint MT Shadow" 
-            Foreground="SkyBlue"
+            FontSize="30" 
+            FontFamily="Biondi" 
+            Foreground="Yellow"
             />
 
         <Grid x:Name="gridMain"

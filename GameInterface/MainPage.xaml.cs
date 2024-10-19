@@ -276,8 +276,6 @@ namespace GameInterface
             setScore = 0;
             setSpeed = defaultSpeed;
             ResetGame();
-
-            //TODO: Add condition to check if score is greater than highscore, and if it is, display gridHighscore instead of gridRestart
             gridRestart.Visibility = Visibility.Visible;
         }
 
@@ -355,19 +353,19 @@ namespace GameInterface
                 readFrom = storageFile;
             }
 
-            // Clear the UI before loading new scores
+            //reset title 
             txtScores.Text = "High Scores\n\n";
 
-            // Read the file contents
+            //read file
             IList<string> fileLines = await FileIO.ReadLinesAsync(readFrom);
 
-            // Add each line in file to list of scores
+            //read each line and add to list of scores if the score is not 0
             foreach (string line in fileLines)
             {
                 int num = Int32.Parse(line);
                 if (num != 0)
                 {
-                    scores.Add(num); // Add to the list collection of scores
+                    scores.Add(num); //add to collection
                     txtScores.Text += $"{num}\n";
                 }
             }
@@ -377,25 +375,25 @@ namespace GameInterface
 
         private void AddScore() 
         {
-            // Avoid adding the score if it's 0 or already exists in the list
+            //if score is not 0 and does not already exist, add to collection
             if (score != 0 && !scores.Contains(score))
             {
-                // Add the current score to the list
                 scores.Add(score);
             }
 
-            // Sort scores in descending order
+            //sort scores by highest first
             scores.Sort((a, b) => b.CompareTo(a));
 
-            // Ensure only the top 10 scores are kept
+            //keep top 10 scores
             if (scores.Count > 10)
             {
-                scores.RemoveRange(10, scores.Count - 10); // Remove scores after the top 10
+                scores.RemoveRange(10, scores.Count - 10); 
             }
 
-            // Display the scores
+            //reset title
             txtScores.Text = "High Scores\n\n";
 
+            //display scores in collection
             foreach (int num in scores)
             {
                 txtScores.Text += $"{num}\n";
@@ -406,36 +404,34 @@ namespace GameInterface
         {
             try
             {
-                // Check if file exists in LocalFolder
+                //check if local file exists
                 localFile = await localFolder.GetFileAsync(fileName);
             }
             catch (FileNotFoundException)
             {
-                // The file doesn't exist, so create it by copying from the Assets folder
+                //if file does not exist, create it from copying text file from assets folder
                 StorageFolder appInstalled = Windows.ApplicationModel.Package.Current.InstalledLocation;
                 StorageFolder assetsFolder = await appInstalled.GetFolderAsync("Assets");
 
-                // Get the file from the Assets folder
+                //get txtScores file from assets folder
                 StorageFile storageFile = await assetsFolder.GetFileAsync(fileName);
 
-                // Copy the file to the LocalFolder
+                //copy text file to local folder
                 localFile = await storageFile.CopyAsync(localFolder, fileName, NameCollisionOption.ReplaceExisting);
             }
 
-            // Overwrite file contents
             CachedFileManager.DeferUpdates(localFile);
 
-            // Write new content (join the scores list into a string, each on a new line)
+            //overwrite local file with scores from collection
             await FileIO.WriteTextAsync(localFile, string.Join("\n", scores));
 
-            // Complete the updates
             await CachedFileManager.CompleteUpdatesAsync(localFile);
         }
 
 
         private void SetHighscore()
         {
-            //find highest score from text file
+            //find highest score from collection of scores
             if (scores.Count > 0)
             {
                 foreach (int num in scores)
@@ -445,7 +441,7 @@ namespace GameInterface
                         highscore = num;
                     }
                 }
-                txtHighscore.Text = highscore.ToString();
+                txtHighscore.Text = highscore.ToString(); 
             }
         }
 
@@ -565,11 +561,11 @@ namespace GameInterface
         {
             switch (score)
             {
+                //when score hits 50, go to level 2
                 case 50:
                     message = "Level 2\n\n";
                     setScore = 50;
                     setSpeed = 0;
-                    //PrepReset();
                     ResetGame();
                     CheckSpeed();
                     //overlay
@@ -585,12 +581,12 @@ namespace GameInterface
         //update text for speed level
         private void CheckSpeed()
         {
-            switch (speed) // 5 = faster, 0 = extra fast, -5 = super fast, -10 = extremely fast
+            switch (speed) 
             {
-                case 10:
+                case 10: //default
                     txtSpeed.Text = "Normal".ToUpper();
                     break;
-                case 0:
+                case 0: //fast
                     txtSpeed.Text = "Fast".ToUpper();
                     break;
                 default:
@@ -731,10 +727,10 @@ namespace GameInterface
         {
             ResetGame();
 
-            // Await the completion of overwriting the scores before quitting
+            //wait for scores to be overwritten before quitting
             await OverwriteScoresAsync();
 
-            // Exit the application
+            //exit application
             Application.Current.Exit();
         }
 
