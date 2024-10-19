@@ -336,7 +336,7 @@ namespace GameInterface
                 //check if file exists in local folder
                 localFile = await localFolder.GetFileAsync(fileName);
 
-                //uncomment this to empty contents of local file
+                //TODO: uncomment this to empty contents of local file
                 //await FileIO.WriteTextAsync(localFile, string.Empty);
 
                 readFrom = localFile;
