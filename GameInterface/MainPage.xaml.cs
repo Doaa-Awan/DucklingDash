@@ -15,6 +15,7 @@ using Windows.UI.Popups;
 using System.Threading.Tasks;
 using Windows.Media.Playback;
 using Windows.Media.Core;
+using Windows.Storage.Provider;
 
 /* UWP Game Template
  * Created By: Melissa VanderLely
@@ -31,64 +32,81 @@ namespace GameInterface
             public double RotationAngle;
         }
 
-        //initalize game pieces
+        #region Game Pieces
+
         private static GamePiece player;
         private static GamePiece dot;
         private static GamePiece bonusDot;
         private static GamePiece babyDuck;
         private static GamePiece enemy;
 
-        //list of baby ducks
-        private static List<GamePiece> collectedDucks = new List<GamePiece>();
+        #endregion
 
-        //list of player positions and angles
-        private List<PlayerState> playerStates = new List<PlayerState>();
+        #region Collections
 
-        //list to hold scores
-        List<int> scores = new List<int>();
+        private static List<GamePiece> collectedDucks = new List<GamePiece>(); //list of baby ducks
+        private List<PlayerState> playerStates = new List<PlayerState>(); //list of player positions and angles
+        List<int> scores = new List<int>(); //list to hold scores
+
+        #endregion
+
+        #region Objects
 
         private Random random = new Random(); //random number generator
         private DispatcherTimer timer = new DispatcherTimer(); //timer
-        private Windows.System.VirtualKey currentDirection; //current key press direction
-        private Windows.System.VirtualKey lastDirection;
 
-        //set variables 
-        private int score = 0;
-        private int highscore = 0;
-        private int speed = 10;
-        private int defaultSpeed = 10;
+        //key press
+        private Windows.System.VirtualKey currentDirection; //current key press direction
+        private Windows.System.VirtualKey lastDirection; //last key press direction
 
         //sounds
         MediaPlayer chirp = new MediaPlayer(); //chirp sound
         MediaPlayer quack = new MediaPlayer(); //quack sound
 
-        //TODO: Add sound for eating fish
+        //border outline
+        SolidColorBrush highlightBrush = new SolidColorBrush(Windows.UI.ColorHelper.FromArgb(0xFF, 0x6D, 0xC9, 0xEF));
+        SolidColorBrush defaultBrush = new SolidColorBrush(Windows.UI.Colors.Transparent);
+
+        //local file
+        StorageFile localFile = null;
+        StorageFolder localFolder = ApplicationData.Current.LocalFolder;
+
+        #endregion
+
+        #region Defaults
+
+        private int score = 0;
+        private int highscore = 0;
+        private int speed = 10;
+        private int defaultSpeed = 10;
 
         //change settings for level up
         private string message = "";
         private int setScore = 0;
         private int setSpeed = 10;
 
-        SolidColorBrush highlightBrush = new SolidColorBrush(Windows.UI.ColorHelper.FromArgb(0xFF, 0x6D, 0xC9, 0xEF));
-        SolidColorBrush defaultBrush = new SolidColorBrush(Windows.UI.Colors.Transparent);
+        //score file name
+        string fileName = "scores.txt";
+
+        #endregion
 
         public MainPage()
         {
             this.InitializeComponent();
-            Window.Current.CoreWindow.KeyDown += CoreWindow_KeyDown;
 
-            ReadScores(false);
+            //event handlers
+            Window.Current.CoreWindow.KeyDown += CoreWindow_KeyDown;
+            timer.Tick += HandleMovement;
+
+            ReadFile();
+            txtScores.Text = "High Scores\n\n";
 
             //set overlay
             screenOverlay.Visibility = Visibility.Visible;
             lblOverlay.Visibility = Visibility.Visible;
             btnScores.Visibility = Visibility.Visible;
-            //gridScores.Visibility = Visibility.Collapsed;
 
-            //add event handler to timer
-            timer.Tick += HandleMovement;
-
-            // Set the BorderBrush
+            //button borders
             btnRestart.BorderBrush = highlightBrush;
             btnQuit.BorderBrush = defaultBrush;
 
@@ -99,37 +117,25 @@ namespace GameInterface
         {
             if (gridRestart.Visibility == Visibility.Visible) //if restart menu is visible
             {
-                // Set focus to the Restart button
-                // btnRestart.Focus(FocusState.Programmatic);
+                //if button is highlighted and enter key is pressed
 
-                // Check if btnRestart has the specific color and if Enter key is pressed
                 if (((SolidColorBrush)btnRestart.BorderBrush).Color == highlightBrush.Color && e.VirtualKey == Windows.System.VirtualKey.Enter)
                 {
-                    ResetGame();
-
-                    gridRestart.Visibility = Visibility.Collapsed;
-
-                    //overlay
-                    screenOverlay.Visibility = Visibility.Visible;
-                    lblOverlay.Visibility = Visibility.Visible;
-                    btnScores.Visibility = Visibility.Visible;
-
+                    Restart();
                 }
-                // Check if btnQuit has the specific color and if Enter key is pressed
                 else if (((SolidColorBrush)btnQuit.BorderBrush).Color == highlightBrush.Color && e.VirtualKey == Windows.System.VirtualKey.Enter)
                 {
-                    Application.Current.Exit();
+                    Quit();
                 }
 
-                // Check if btnRestart has the specific color and if Left arrow key is pressed
+                //if button is highlighted and left or right key is pressed
+
                 if (((SolidColorBrush)btnRestart.BorderBrush).Color == highlightBrush.Color && e.VirtualKey == Windows.System.VirtualKey.Left)
                 {
                     btnQuit.BorderBrush = highlightBrush;
                     btnRestart.BorderBrush = defaultBrush;
                 }
-
-                // Check if btnQuit has the specific color and if Right arrow key is pressed
-                if (((SolidColorBrush)btnQuit.BorderBrush).Color == highlightBrush.Color && e.VirtualKey == Windows.System.VirtualKey.Right)
+                else if (((SolidColorBrush)btnQuit.BorderBrush).Color == highlightBrush.Color && e.VirtualKey == Windows.System.VirtualKey.Right)
                 {
                     btnRestart.BorderBrush = highlightBrush;
                     btnQuit.BorderBrush = defaultBrush;
@@ -140,18 +146,11 @@ namespace GameInterface
             {
                 if (e.VirtualKey == Windows.System.VirtualKey.Space) //space bar pressed
                     StartGame();
-
-                //if (btnScores.Visibility == Visibility.Visible && e.VirtualKey == Windows.System.VirtualKey.Enter)
-                //{
-                //    if (gridScores.Visibility == Visibility.Collapsed)
-                //        gridScores.Visibility = Visibility.Visible;
-                //    else
-                //        gridScores.Visibility = Visibility.Collapsed;
-                //}
             }
+            //if overlay is collapsed or restart menu is collapsed
             else if (lblOverlay.Visibility == Visibility.Collapsed || gridRestart.Visibility == Visibility.Collapsed)
             {
-              //if overlay is not visible change direction based on key press
+              //change direction based on key press
                 switch (e.VirtualKey)
                 {
                     case Windows.System.VirtualKey.W:
@@ -182,6 +181,7 @@ namespace GameInterface
             lblOverlay.Visibility = Visibility.Collapsed;
             screenOverlay.Visibility = Visibility.Collapsed;
             btnScores.Visibility = Visibility.Collapsed;
+            gridScores.Visibility = Visibility.Collapsed;
 
             //set current direction to right
             currentDirection = Windows.System.VirtualKey.Right;
@@ -269,48 +269,6 @@ namespace GameInterface
             CheckCrash(); //check if player hits border or baby ducks
         }
 
-        #region Level Settings
-
-        //reset game and update level (speed) depending on score reached
-        private void CheckLevelUp()
-        {
-            switch (score)
-            {
-                case 50:
-                    message = "Level 2\n\n";
-                    setScore = 50;
-                    setSpeed = 0;
-                    //PrepReset();
-                    ResetGame();
-                    CheckSpeed();
-                    //overlay
-                    screenOverlay.Visibility = Visibility.Visible;
-                    lblOverlay.Visibility = Visibility.Visible;
-                    btnScores.Visibility = Visibility.Visible;
-                    break;
-                default:
-                    break;
-            }
-        }
-
-        //update text for speed level
-        private void CheckSpeed()
-        {
-            switch (speed) // 5 = faster, 0 = extra fast, -5 = super fast, -10 = extremely fast
-            {
-                case 10:
-                    txtSpeed.Text = "Normal".ToUpper();
-                    break;
-                case 0:
-                    txtSpeed.Text = "Fast".ToUpper();
-                    break;
-                default:
-                    break;
-            }
-        }
-
-        #endregion
-
         private void Crash()
         {
             quack.Play();
@@ -324,7 +282,7 @@ namespace GameInterface
         }
 
         //reset game
-        private void ResetGame()
+        private async void ResetGame()
         {
             timer.Stop(); //stop timer
             currentDirection = Windows.System.VirtualKey.None; //reset direction
@@ -350,69 +308,130 @@ namespace GameInterface
                 gridMain.Children.Remove(babyDuck.PieceImg);
             }
 
-            //if (score > highscore)
-            //{
-            //    scores.Add(score); //add current score to list of scores
-            //}
-            scores.Add(score);
+            if (score > highscore)
+            {
+                _ = await new MessageDialog("New Highscore!").ShowAsync();
+            }
+
+            AddScore();
 
             score = setScore; //set new score
-
             speed = setSpeed; //set new speed
 
             lblOverlay.Text = $"{message}Press Space to start".ToUpper();
+            lblInfo.Text = ""; //clear text
 
             //clear lists
             collectedDucks.Clear();
             playerStates.Clear();
-
-            lblInfo.Text = ""; //clear text
         }
 
         #region High Score
 
-        private async void ReadScores(bool overwrite)
+        //Read high scores text file and store values
+        private async void ReadFile()
         {
-            StorageFolder appInstalled = Windows.ApplicationModel.Package.Current.InstalledLocation;
-            StorageFolder assetsFolder = await appInstalled.GetFolderAsync("Assets");
+            StorageFile readFrom;
 
-            //get the file from the assets folder
-            StorageFile storageFile = await assetsFolder.GetFileAsync("scores.txt");
-
-            if (storageFile != null)
+            try
             {
-                //read the file contents into an IList collection of strings
-                IList<string> fileLines = await FileIO.ReadLinesAsync(storageFile);
+                //check if file exists in local folder
+                localFile = await localFolder.GetFileAsync(fileName);
 
-                txtScores.Text += "\n\n";
+                //uncomment this to empty contents of local file
+                //await FileIO.WriteTextAsync(localFile, string.Empty);
 
-                //add each line in file to list of scores
-                foreach (string line in fileLines)
+                readFrom = localFile;
+            }
+            catch //file doesn't exist in local folder
+            {
+                //get file from assets folder
+                StorageFolder appInstalled = Windows.ApplicationModel.Package.Current.InstalledLocation;
+                StorageFolder assetsFolder = await appInstalled.GetFolderAsync("Assets");
+
+                //get the file from the assets folder
+                StorageFile storageFile = await assetsFolder.GetFileAsync(fileName);
+
+                readFrom = storageFile;
+            }
+
+            // Clear the UI before loading new scores
+            txtScores.Text = "High Scores\n\n";
+
+            // Read the file contents
+            IList<string> fileLines = await FileIO.ReadLinesAsync(readFrom);
+
+            // Add each line in file to list of scores
+            foreach (string line in fileLines)
+            {
+                int num = Int32.Parse(line);
+                if (num != 0)
                 {
-                    scores.Add(Int32.Parse(line)); //add to list collection of scores
-                    txtScores.Text += $"{line}\n";
+                    scores.Add(num); // Add to the list collection of scores
+                    txtScores.Text += $"{num}\n";
                 }
+            }
 
-                //TODO: Display scores in txtScores
+            SetHighscore(); //update highscore text box
+        }
 
-                if (overwrite) //game has ended and storage file has been cleared but updated scores in list
-                {
-                    // Join all scores into a single string separated by newlines
-                    string allScores = string.Join("\n", scores);
+        private void AddScore() 
+        {
+            // Avoid adding the score if it's 0 or already exists in the list
+            if (score != 0 && !scores.Contains(score))
+            {
+                // Add the current score to the list
+                scores.Add(score);
+            }
 
-                    // Write all the scores at once to the file
-                    await FileIO.WriteTextAsync(storageFile, allScores);
+            // Sort scores in descending order
+            scores.Sort((a, b) => b.CompareTo(a));
 
-                    //foreach (int num in scores)
-                    //{
-                    //    //overwrite file with values in scores list
-                    //    await FileIO.WriteTextAsync(storageFile, $"{num}\n");
-                    //}
-                }
+            // Ensure only the top 10 scores are kept
+            if (scores.Count > 10)
+            {
+                scores.RemoveRange(10, scores.Count - 10); // Remove scores after the top 10
+            }
 
-                SetHighscore();
+            // Display the scores
+            txtScores.Text = "High Scores\n\n";
+
+            foreach (int num in scores)
+            {
+                txtScores.Text += $"{num}\n";
             }
         }
+
+        private async Task OverwriteScoresAsync()
+        {
+            try
+            {
+                // Check if file exists in LocalFolder
+                localFile = await localFolder.GetFileAsync(fileName);
+            }
+            catch (FileNotFoundException)
+            {
+                // The file doesn't exist, so create it by copying from the Assets folder
+                StorageFolder appInstalled = Windows.ApplicationModel.Package.Current.InstalledLocation;
+                StorageFolder assetsFolder = await appInstalled.GetFolderAsync("Assets");
+
+                // Get the file from the Assets folder
+                StorageFile storageFile = await assetsFolder.GetFileAsync(fileName);
+
+                // Copy the file to the LocalFolder
+                localFile = await storageFile.CopyAsync(localFolder, fileName, NameCollisionOption.ReplaceExisting);
+            }
+
+            // Overwrite file contents
+            CachedFileManager.DeferUpdates(localFile);
+
+            // Write new content (join the scores list into a string, each on a new line)
+            await FileIO.WriteTextAsync(localFile, string.Join("\n", scores));
+
+            // Complete the updates
+            await CachedFileManager.CompleteUpdatesAsync(localFile);
+        }
+
 
         private void SetHighscore()
         {
@@ -535,6 +554,48 @@ namespace GameInterface
                     playerBounds.Right > pieceBounds.Left &&
                     playerBounds.Top < pieceBounds.Bottom &&
                     playerBounds.Bottom > pieceBounds.Top);
+        }
+
+        #endregion
+
+        #region Level Settings
+
+        //reset game and update level (speed) depending on score reached
+        private void CheckLevelUp()
+        {
+            switch (score)
+            {
+                case 50:
+                    message = "Level 2\n\n";
+                    setScore = 50;
+                    setSpeed = 0;
+                    //PrepReset();
+                    ResetGame();
+                    CheckSpeed();
+                    //overlay
+                    screenOverlay.Visibility = Visibility.Visible;
+                    lblOverlay.Visibility = Visibility.Visible;
+                    btnScores.Visibility = Visibility.Visible;
+                    break;
+                default:
+                    break;
+            }
+        }
+
+        //update text for speed level
+        private void CheckSpeed()
+        {
+            switch (speed) // 5 = faster, 0 = extra fast, -5 = super fast, -10 = extremely fast
+            {
+                case 10:
+                    txtSpeed.Text = "Normal".ToUpper();
+                    break;
+                case 0:
+                    txtSpeed.Text = "Fast".ToUpper();
+                    break;
+                default:
+                    break;
+            }
         }
 
         #endregion
@@ -666,13 +727,18 @@ namespace GameInterface
                 gridScores.Visibility = Visibility.Collapsed;
         }
 
-        private void btnQuit_Click(object sender, RoutedEventArgs e)
+        private async void Quit()
         {
-            ReadScores(true);
+            ResetGame();
+
+            // Await the completion of overwriting the scores before quitting
+            await OverwriteScoresAsync();
+
+            // Exit the application
             Application.Current.Exit();
         }
 
-        private void btnRestart_Click(object sender, RoutedEventArgs e)
+        private void Restart()
         {
             ResetGame();
 
@@ -682,6 +748,16 @@ namespace GameInterface
             screenOverlay.Visibility = Visibility.Visible;
             lblOverlay.Visibility = Visibility.Visible;
             btnScores.Visibility = Visibility.Visible;
+        }
+
+        private void btnQuit_Click(object sender, RoutedEventArgs e)
+        {
+            Quit();
+        }
+
+        private void btnRestart_Click(object sender, RoutedEventArgs e)
+        {
+            Restart();
         }
 
         #endregion
